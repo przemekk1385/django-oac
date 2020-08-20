@@ -60,11 +60,40 @@ class Token(models.Model):
 
     remote = TokenRemoteManager()
 
+    def _prepare_refresh_access_token_request_payload(self) -> dict:
+        return {
+            "grant_type": "refresh_token",
+            "refresh_token": self.refresh_token,
+            "client_id": settings.OAC.get("client_id", ""),
+            "client_secret": settings.OAC.get("client_secret", ""),
+        }
+
     @property
     def has_expired(self) -> bool:
         return timezone.now() >= pendulum.instance(self.issued).add(
             seconds=self.expires_in
         )
+
+    def refresh(self) -> None:
+        response = requests.post(
+            settings.OAC.get("token_endpoint", ""),
+            self._prepare_refresh_access_token_request_payload()
+        )
+
+        if response.status_code != 200:
+            raise RequestFailed(
+                "refresh access token request failed,"
+                f" provider responded with code {response.status_code}",
+                response.status_code,
+            )
+
+        json_dict = response.json()
+
+        self.access_token = json_dict.get("access_token", self.access_token)
+        self.refresh_token = json_dict.get("refresh_token", self.refresh_token)
+        self.expires_in = json_dict.get("expires_in", self.expires_in)
+        self.issued = timezone.now()
+        self.save()
 
 
 class UserRemoteManager:
