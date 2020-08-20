@@ -32,7 +32,7 @@ def test_get_succeeded(mock_request):
         },
     )
 
-    token = Token.remote.get("spam")
+    token, id_token = Token.remote.get("spam")
 
     assert token.access_token == "foo"
     assert token.refresh_token == "bar"

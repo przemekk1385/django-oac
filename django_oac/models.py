@@ -1,3 +1,4 @@
+from typing import Tuple, Union
 from uuid import uuid4
 import json
 
@@ -24,7 +25,7 @@ class TokenRemoteManager:
             "redirect_uri": settings.OAC.get("redirect_uri", ""),
         }
 
-    def get(self, code: str) -> "Token":
+    def get(self, code: str) -> Tuple["Token", Union[str, None]]:
         response = requests.post(
             settings.OAC.get("token_uri", ""),
             self._prepare_get_access_token_request_payload(code),
@@ -40,13 +41,16 @@ class TokenRemoteManager:
         # TODO: handle token_type
 
         json_dict = response.json()
-        # id_token = json_dict.pop("id_token", "")
+        id_token = json_dict.pop("id_token", None)
 
-        return Token(
-            access_token=json_dict["access_token"],
-            refresh_token=json_dict["refresh_token"],
-            expires_in=json_dict["expires_in"],
-            issued=timezone.now(),
+        return (
+            Token(
+                access_token=json_dict["access_token"],
+                refresh_token=json_dict["refresh_token"],
+                expires_in=json_dict["expires_in"],
+                issued=timezone.now(),
+            ),
+            id_token,
         )
 
 
