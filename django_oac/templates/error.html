@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Login attempt failed</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="5; url={% url 'django_oac:authenticate' %}">
+  </head>
+  <body>
+    <p>
+        Login attempt has failed, details are available for the system administrator.
+    </p>
+    <p>
+        In a few seconds you will be redirected back to the authentication site,
+        if you don't want to wait use <a href="{% url 'django_oac:authenticate' %}">this link</a>.
+    </p>
+  </body>
+</html>

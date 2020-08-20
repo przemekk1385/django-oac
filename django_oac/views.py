@@ -1,11 +1,19 @@
 from uuid import uuid4
+import logging
+
+from jwt.exceptions import PyJWTError
 
 from django.conf import settings
 from django.contrib.auth import authenticate, login
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.utils import timezone
+
+from .exceptions import OACError
+
+logger = logging.getLogger(__name__)
 
 
 def authenticate_view(request: WSGIRequest) -> HttpResponse:
@@ -23,10 +31,23 @@ def authenticate_view(request: WSGIRequest) -> HttpResponse:
 
 
 def callback_view(request: WSGIRequest) -> HttpResponse:
-    user = authenticate(request)
+    try:
+        user = authenticate(request)
+    except (OACError, PyJWTError) as e:
+        logger.error(f"{e.__class__.__name__}: {e}")
+        user = None
+        to = reverse("django_oac:error")
+
     if user:
+        logger.info(f"{user.email} successfully authenticated")
         login(request, user, backend="django_oac.backends.OAuthClientBackend")
-    return redirect("django_oac:test")
+        to = reverse("django_oac:test")
+
+    return redirect(to)
+
+
+def error_view(request: WSGIRequest) -> HttpResponse:
+    return render(request, "error.html")
 
 
 def logout_view(request: WSGIRequest) -> HttpResponse:
