@@ -134,9 +134,14 @@ class UserRemoteManager:
             "username": uuid4().hex,
         }
 
-        instance, created = UserModel.objects.get_or_create(**payload)
+        # TODO: configurable lookup field
 
-        return instance
+        try:
+            user = UserModel.objects.get(email=payload.get("email"))
+        except UserModel.DoesNotExist:
+            user = UserModel.objects.create(**payload)
+
+        return user
 
 
 class User(UserModel):
