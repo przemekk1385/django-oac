@@ -12,8 +12,10 @@ from .helpers import make_mock_response
 @patch("django_oac.models.requests")
 def test_get_failure(mock_request):
     mock_request.post.return_value = make_mock_response(400, {})
+
     with pytest.raises(RequestFailed) as e_info:
         Token.remote.get("foo")
+
     assert e_info.value.status_code == 400
 
 
@@ -29,7 +31,9 @@ def test_get_succeeded(mock_request):
             "id_token": "baz",
         },
     )
+
     token = Token.remote.get("spam")
+
     assert token.access_token == "foo"
     assert token.refresh_token == "bar"
     assert token.expires_in == 3600
