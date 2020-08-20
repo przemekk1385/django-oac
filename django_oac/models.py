@@ -81,7 +81,7 @@ class Token(models.Model):
     def refresh(self) -> None:
         response = requests.post(
             settings.OAC.get("token_endpoint", ""),
-            self._prepare_refresh_access_token_request_payload()
+            self._prepare_refresh_access_token_request_payload(),
         )
 
         if response.status_code != 200:
