@@ -15,7 +15,7 @@ from .exceptions import RequestFailed
 
 class TokenRemoteManager:
     @staticmethod
-    def _prepare_access_token_request_payload(code: str) -> dict:
+    def _prepare_get_access_token_request_payload(code: str) -> dict:
         return {
             "grant_type": "authorization_code",
             "client_id": settings.OAC.get("client_id", ""),
@@ -27,7 +27,7 @@ class TokenRemoteManager:
     def get(self, code: str) -> "Token":
         response = requests.post(
             settings.OAC.get("token_uri", ""),
-            self._prepare_access_token_request_payload(code),
+            self._prepare_get_access_token_request_payload(code),
         )
 
         if response.status_code != 200:
