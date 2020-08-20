@@ -13,7 +13,7 @@ def authenticate_view(request: WSGIRequest) -> HttpResponse:
     request.session["OAC_STATE_STR"] = state_str
     request.session["OAC_STATE_TIMESTAMP"] = timezone.now().timestamp()
     return redirect(
-        f"{settings.OAC.get('authenticate_uri', '')}"
+        f"{settings.OAC.get('authorize_uri', '')}"
         f"?scope={settings.OAC.get('scope', '')}"
         f"&client_id={settings.OAC.get('client_id', '')}"
         f"&redirect_uri={settings.OAC.get('redirect_uri', '')}"
