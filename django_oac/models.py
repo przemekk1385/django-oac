@@ -37,6 +37,8 @@ class TokenRemoteManager:
                 response.status_code,
             )
 
+        # TODO: handle token_type
+
         json_dict = response.json()
         # id_token = json_dict.pop("id_token", "")
 
