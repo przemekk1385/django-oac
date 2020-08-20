@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
-from django_oac.exceptions import RequestFailed
+from django_oac.exceptions import FailedRequest
 from django_oac.models import Token
 
 from .helpers import make_mock_response
@@ -13,7 +13,7 @@ from .helpers import make_mock_response
 def test_get_failure(mock_request):
     mock_request.post.return_value = make_mock_response(400, {})
 
-    with pytest.raises(RequestFailed) as e_info:
+    with pytest.raises(FailedRequest) as e_info:
         Token.remote.get("foo")
 
     assert e_info.value.status_code == 400

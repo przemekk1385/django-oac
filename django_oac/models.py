@@ -11,7 +11,7 @@ from django.contrib.auth.backends import UserModel
 from django.db import models
 from django.utils import timezone
 
-from .exceptions import RequestFailed
+from .exceptions import FailedRequest
 
 
 class TokenRemoteManager:
@@ -32,7 +32,7 @@ class TokenRemoteManager:
         )
 
         if response.status_code != 200:
-            raise RequestFailed(
+            raise FailedRequest(
                 "access token request failed,"
                 f" provider responded with code {response.status_code}",
                 response.status_code,
@@ -85,7 +85,7 @@ class Token(models.Model):
         )
 
         if response.status_code != 200:
-            raise RequestFailed(
+            raise FailedRequest(
                 "refresh access token request failed,"
                 f" provider responded with code {response.status_code}",
                 response.status_code,
@@ -110,7 +110,7 @@ class UserRemoteManager:
         response = requests.get(settings.OAC.get("jwks_uri", ""))
 
         if response.status_code != 200:
-            raise RequestFailed(
+            raise FailedRequest(
                 "jwks request failed,"
                 f" provider responded with code {response.status_code}",
                 response.status_code,

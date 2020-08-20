@@ -5,7 +5,7 @@ import pendulum
 
 from django.utils import timezone
 
-from django_oac.exceptions import RequestFailed
+from django_oac.exceptions import FailedRequest
 from django_oac.models import Token
 
 from .helpers import make_mock_response
@@ -36,7 +36,7 @@ def test_refresh_method_failure(mock_request):
     )
     mock_request.post.return_value = make_mock_response(400, {},)
 
-    with pytest.raises(RequestFailed) as e_info:
+    with pytest.raises(FailedRequest) as e_info:
         token.refresh()
 
     assert e_info.value.status_code == 400

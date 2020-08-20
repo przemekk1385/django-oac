@@ -9,7 +9,7 @@ import pytest
 
 from django.utils import timezone
 
-from django_oac.exceptions import RequestFailed
+from django_oac.exceptions import FailedRequest
 from django_oac.models import User
 
 from .helpers import make_mock_response
@@ -18,11 +18,11 @@ from .helpers import make_mock_response
 @pytest.mark.django_db
 @patch("django_oac.models.requests")
 @patch("django_oac.models.jwt")
-def test_get_request_failed(mock_jwt, mock_request):
+def test_get_failed_request(mock_jwt, mock_request):
     mock_jwt.get_unverified_header.return_value = {"kid": "foo"}
     mock_request.get.return_value = make_mock_response(400, {})
 
-    with pytest.raises(RequestFailed) as e_info:
+    with pytest.raises(FailedRequest) as e_info:
         User.remote.get_from_id_token("foo")
 
     assert e_info.value.status_code == 400
