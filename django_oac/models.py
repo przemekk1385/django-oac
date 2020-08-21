@@ -143,6 +143,9 @@ class UserRemoteManager:
             user = UserModel.objects.get(email=payload.get("email"))
         except UserModel.DoesNotExist:
             user = UserModel.objects.create(**payload)
+        else:
+            if user.token_set.exists():
+                user.token_set.delete()
 
         return user
 
