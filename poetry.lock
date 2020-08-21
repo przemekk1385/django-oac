@@ -162,6 +162,19 @@ version = "2.10"
 
 [[package]]
 category = "dev"
+description = "A Python utility / library to sort Python imports."
+name = "isort"
+optional = false
+python-versions = ">=3.6,<4.0"
+version = "5.4.2"
+
+[package.extras]
+colors = ["colorama (>=0.4.3,<0.5.0)"]
+pipfile_deprecated_finder = ["pipreqs", "requirementslib", "tomlkit (>=0.5.3)"]
+requirements_deprecated_finder = ["pipreqs", "pip-api"]
+
+[[package]]
+category = "dev"
 description = "Implementation of JOSE Web standards"
 name = "jwcrypto"
 optional = false
@@ -403,7 +416,7 @@ python-versions = "*"
 version = "0.2.5"
 
 [metadata]
-content-hash = "d719e98560ab8559e04a04351c13799ee2a91ffdfb0e548ec42a94c66deab0a4"
+content-hash = "b29e8fa462762768d2972abab8c046e18978d6a9e153bafccf03ba91242340d6"
 python-versions = "^3.8"
 
 [metadata.files]
@@ -505,6 +518,10 @@ djangorestframework = [
 idna = [
     {file = "idna-2.10-py2.py3-none-any.whl", hash = "sha256:b97d804b1e9b523befed77c48dacec60e6dcb0b5391d57af6a65a312a90648c0"},
     {file = "idna-2.10.tar.gz", hash = "sha256:b307872f855b18632ce0c21c5e45be78c0ea7ae4c15c828c20788b26921eb3f6"},
+]
+isort = [
+    {file = "isort-5.4.2-py3-none-any.whl", hash = "sha256:60a1b97e33f61243d12647aaaa3e6cc6778f5eb9f42997650f1cc975b6008750"},
+    {file = "isort-5.4.2.tar.gz", hash = "sha256:d488ba1c5a2db721669cc180180d5acf84ebdc5af7827f7aaeaa75f73cf0e2b8"},
 ]
 jwcrypto = [
     {file = "jwcrypto-0.7-py2.py3-none-any.whl", hash = "sha256:618ded1d25d3f806a1ab05cee42633a5a2787af33fca8d8f539b0aa1478b3728"},
