@@ -115,6 +115,8 @@ class UserRemoteManager:
                 response.status_code,
             )
 
+        # TODO: auto-pick algorithm
+
         jwt_algorithm = getattr(
             jwt.algorithms, settings.OAC.get("jwt_algorithm", "RSAAlgorithm")
         )
