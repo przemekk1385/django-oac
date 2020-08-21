@@ -122,5 +122,10 @@ STATIC_URL = "/static/"
 # https://url.to.docs/
 
 OAC = {
+    "authorize_uri": "",
+    "token_uri": "",
+    "revoke_uri": "",
+    "redirect_uri": "",
+    "jwks_uri": "",
     "client_id": "foo-bar-baz",
 }
