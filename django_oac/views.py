@@ -11,9 +11,10 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
 
+from .apps import DjangoOACConfig
 from .exceptions import OACError
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(DjangoOACConfig.name)
 
 
 def authenticate_view(request: WSGIRequest) -> HttpResponse:
