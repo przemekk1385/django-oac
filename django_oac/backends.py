@@ -2,7 +2,6 @@ from typing import Union
 from urllib.parse import parse_qsl, urlparse
 
 import pendulum
-
 from django.conf import settings
 from django.contrib.auth.backends import BaseBackend, UserModel
 from django.core.handlers.wsgi import WSGIRequest

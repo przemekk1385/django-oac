@@ -1,8 +1,7 @@
 from unittest.mock import patch
 
-import pytest
 import pendulum
-
+import pytest
 from django.utils import timezone
 
 from django_oac.exceptions import FailedRequest

@@ -1,5 +1,5 @@
-from logging.handlers import RotatingFileHandler
 import logging
+from logging.handlers import RotatingFileHandler
 
 from django.apps import AppConfig
 from django.conf import settings

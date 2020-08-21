@@ -1,13 +1,12 @@
 import json
 from unittest.mock import patch
 
-from jwcrypto.jwk import JWK
-from jwt.exceptions import ExpiredSignatureError
 import jwt
 import pendulum
 import pytest
-
 from django.utils import timezone
+from jwcrypto.jwk import JWK
+from jwt.exceptions import ExpiredSignatureError
 
 from django_oac.exceptions import FailedRequest
 from django_oac.models import User

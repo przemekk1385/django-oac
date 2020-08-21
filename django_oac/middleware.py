@@ -1,13 +1,13 @@
-from typing import Callable, Type
 import logging
+from typing import Callable, Type
 
 from django.contrib.auth import logout
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponseBase
 
 from .apps import DjangoOACConfig
-from .models import Token
 from .exceptions import FailedRequest
+from .models import Token
 
 logger = logging.getLogger(DjangoOACConfig.name)
 

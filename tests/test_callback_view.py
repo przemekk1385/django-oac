@@ -1,12 +1,11 @@
-from unittest.mock import patch
 import logging
+from unittest.mock import patch
 
-from jwt.exceptions import PyJWTError, ExpiredSignatureError
 import pytest
-
 from django.shortcuts import reverse
+from jwt.exceptions import ExpiredSignatureError, PyJWTError
 
-from django_oac.exceptions import OACError, BadRequest, FailedRequest
+from django_oac.exceptions import BadRequest, FailedRequest, OACError
 
 logger = logging.getLogger(__name__)
 

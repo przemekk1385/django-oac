@@ -2,7 +2,6 @@ from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
-
 from django.utils import timezone
 
 from django_oac.backends import OAuthClientBackend

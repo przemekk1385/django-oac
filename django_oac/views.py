@@ -1,7 +1,5 @@
-from uuid import uuid4
 import logging
-
-from jwt.exceptions import PyJWTError
+from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.auth import authenticate, login
@@ -10,6 +8,7 @@ from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from jwt.exceptions import PyJWTError
 
 from .apps import DjangoOACConfig
 from .exceptions import OACError

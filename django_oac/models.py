@@ -1,11 +1,10 @@
+import json
 from typing import Tuple, Union
 from uuid import uuid4
-import json
 
 import jwt
 import pendulum
 import requests
-
 from django.conf import settings
 from django.contrib.auth.backends import UserModel
 from django.db import models
