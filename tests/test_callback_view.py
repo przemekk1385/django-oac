@@ -29,4 +29,4 @@ def test_callback_view(
     client.get(reverse("django_oac:callback"))
 
     for record in caplog.records:
-        assert record.msg == f"{raised_exception.__name__}: {expected_message}"
+        assert record.msg == f"raised '{raised_exception.__name__}: {expected_message}'"

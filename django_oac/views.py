@@ -35,12 +35,12 @@ def callback_view(request: WSGIRequest) -> HttpResponse:
     try:
         user = authenticate(request)
     except (OACError, PyJWTError) as e:
-        logger.error(f"{e.__class__.__name__}: {e}")
+        logger.error(f"raised '{e.__class__.__name__}: {e}'")
         user = None
         to = reverse("django_oac:error")
 
     if user:
-        logger.info(f"{user.email} successfully authenticated")
+        logger.info(f"user '{user.email}' authenticated")
         login(request, user, backend="django_oac.backends.OAuthClientBackend")
         to = reverse("django_oac:test")
 
