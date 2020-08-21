@@ -23,3 +23,4 @@ class DjangoOACConfig(AppConfig):
             logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         )
         logger.addHandler(fh)
+        logger.setLevel("INFO")
