@@ -27,6 +27,15 @@ class OAuthClientBackend(BaseBackend):
 
         return query_dict["code"]
 
+    @staticmethod
+    def get_user(pk: int) -> Union[UserModel, None]:
+        try:
+            user = UserModel.objects.get(pk=pk)
+        except UserModel.DoesNotExist:
+            user = None
+
+        return user
+
     def authenticate(
         self, request: WSGIRequest, username: str = None, password: str = None
     ) -> Union[UserModel, None]:
