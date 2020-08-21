@@ -20,11 +20,11 @@ class OAuthClientMiddleware:
         user = request.user
         if user.is_authenticated:
             try:
-                token = Token.objects.get(user=user)
+                token = user.token_set.last()
             except Token.DoesNotExist:
                 token = None
 
-            if token.has_expired:
+            if token and token.has_expired:
                 try:
                     token.refresh()
                 except FailedRequest as e:
