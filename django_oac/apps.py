@@ -15,7 +15,7 @@ class DjangoOACConfig(AppConfig):
             log_dir.mkdir(parents=True)
         logger = logging.getLogger(self.name)
         fh = RotatingFileHandler(
-            log_dir / f"{self.name}-log", maxBytes=(5 * 1024 ** 2),
+            log_dir / f"{self.name}.log", maxBytes=(5 * 1024 ** 2),
         )
         fh.setFormatter(
             logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
