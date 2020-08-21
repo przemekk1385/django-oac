@@ -142,6 +142,17 @@ argon2 = ["argon2-cffi (>=16.1.0)"]
 bcrypt = ["bcrypt"]
 
 [[package]]
+category = "dev"
+description = "An SSL-enabled development server for Django"
+name = "django-sslserver"
+optional = false
+python-versions = "*"
+version = "0.22"
+
+[package.dependencies]
+Django = ">=1.8"
+
+[[package]]
 category = "main"
 description = "Web APIs for Django, made easy."
 name = "djangorestframework"
@@ -416,7 +427,7 @@ python-versions = "*"
 version = "0.2.5"
 
 [metadata]
-content-hash = "b29e8fa462762768d2972abab8c046e18978d6a9e153bafccf03ba91242340d6"
+content-hash = "85e9b1e0587bbed9f37617e9974ee7f24b1d0ec719ea0af00e3ab213d383b49e"
 python-versions = "^3.8"
 
 [metadata.files]
@@ -510,6 +521,9 @@ cryptography = [
 django = [
     {file = "Django-3.1-py3-none-any.whl", hash = "sha256:1a63f5bb6ff4d7c42f62a519edc2adbb37f9b78068a5a862beff858b68e3dc8b"},
     {file = "Django-3.1.tar.gz", hash = "sha256:2d390268a13c655c97e0e2ede9d117007996db692c1bb93eabebd4fb7ea7012b"},
+]
+django-sslserver = [
+    {file = "django_sslserver-0.22-py3-none-any.whl", hash = "sha256:c598a363d2ccdc2421c08ddb3d8b0973f80e8e47a3a5b74e4a2896f21c2947c5"},
 ]
 djangorestframework = [
     {file = "djangorestframework-3.11.1-py3-none-any.whl", hash = "sha256:8b1ac62c581dbc5799b03e535854b92fc4053ecfe74bad3f9c05782063d4196b"},
