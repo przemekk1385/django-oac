@@ -1,10 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Login failed</title>
-    <meta http-equiv="refresh" content="5; url={% url 'django_oac:authenticate' %}">
+    <title>Error</title>
+    {% if redirect %}
+    <meta http-equiv="refresh" content="5; url={{ redirect }}">
+    {% endif %}
   </head>
   <body>
+    {% if err == 'config' %}
+    <h1>Configuration error</h1>
+    <p>
+        App config is incomplete, cannot continue, contact system administrator.
+    </p>
+    {% else %}
     <h1>Login failed</h1>
     <p>
         Login attempt has failed, details are available for the system administrator.
@@ -13,5 +21,6 @@
         In a few seconds you will be redirected back to the authentication site,
         if you don't want to wait use <a href="{% url 'django_oac:authenticate' %}">this link</a>.
     </p>
+    {% endif %}
   </body>
 </html>

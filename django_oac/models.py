@@ -26,7 +26,7 @@ class TokenRemoteManager:
 
     def get(self, code: str) -> Tuple["Token", Union[str, None]]:
         response = requests.post(
-            settings.OAC.get("token_uri", ""),
+            settings.OAC["token_uri"],
             self._prepare_get_access_token_request_payload(code),
         )
 
@@ -79,7 +79,7 @@ class Token(models.Model):
 
     def refresh(self) -> None:
         response = requests.post(
-            settings.OAC.get("token_endpoint", ""),
+            settings.OAC["token_uri"],
             self._prepare_refresh_access_token_request_payload(),
         )
 
@@ -106,7 +106,7 @@ class UserRemoteManager:
 
         # TODO: caching
 
-        response = requests.get(settings.OAC.get("jwks_uri", ""))
+        response = requests.get(settings.OAC["jwks_uri"])
 
         if response.status_code != 200:
             raise FailedRequest(
