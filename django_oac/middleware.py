@@ -6,7 +6,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponseBase
 
 from .apps import DjangoOACConfig
-from .exceptions import FailedRequest
+from .exceptions import ProviderRequestError
 from .models import Token
 
 logger = logging.getLogger(DjangoOACConfig.name)
@@ -27,8 +27,8 @@ class OAuthClientMiddleware:
             if token and token.has_expired:
                 try:
                     token.refresh()
-                except FailedRequest as e:
-                    logger.error(f"raised 'FailedRequest: {e}'")
+                except ProviderRequestError as e:
+                    logger.error(f"raised ProviderRequestError: {e}")
                     logout(request)
                 else:
                     logger.info(f"access token for user '{user.email}' refreshed")

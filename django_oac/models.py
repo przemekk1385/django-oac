@@ -10,7 +10,7 @@ from django.contrib.auth.backends import UserModel
 from django.db import models
 from django.utils import timezone
 
-from .exceptions import FailedRequest
+from .exceptions import ProviderResponseError
 
 
 class TokenRemoteManager:
@@ -31,10 +31,9 @@ class TokenRemoteManager:
         )
 
         if response.status_code != 200:
-            raise FailedRequest(
+            raise ProviderResponseError(
                 "access token request failed,"
-                f" provider responded with code {response.status_code}",
-                response.status_code,
+                f" provider responded with code {response.status_code}"
             )
 
         # TODO: handle token_type
@@ -84,10 +83,9 @@ class Token(models.Model):
         )
 
         if response.status_code != 200:
-            raise FailedRequest(
+            raise ProviderResponseError(
                 "refresh access token request failed,"
                 f" provider responded with code {response.status_code}",
-                response.status_code,
             )
 
         json_dict = response.json()

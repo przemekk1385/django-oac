@@ -7,7 +7,7 @@ from django.contrib.auth.backends import BaseBackend, UserModel
 from django.core.handlers.wsgi import WSGIRequest
 from django.utils import timezone
 
-from .exceptions import BadRequest, ExpiredState, MismatchingState
+from .exceptions import ExpiredStateError, MismatchingStateError, ProviderRequestError
 from .models import Token, User
 
 
@@ -17,12 +17,12 @@ class OAuthClientBackend(BaseBackend):
         query_dict = dict(parse_qsl(urlparse(request_uri).query))
 
         if {"state", "code"}.difference(query_dict.keys()):
-            raise BadRequest(
+            raise ProviderRequestError(
                 "missing one or both 'code', 'state' required query params"
             )
         if state_str != query_dict["state"]:
-            raise MismatchingState(
-                "CSRF warning: mismatching request and response states"
+            raise MismatchingStateError(
+                "CSRF warning, mismatching request and response states"
             )
 
         return query_dict["code"]
@@ -50,7 +50,7 @@ class OAuthClientBackend(BaseBackend):
         if timezone.now() >= pendulum.from_timestamp(
             state_timestamp + 300, tz=settings.TIME_ZONE
         ):
-            raise ExpiredState("state has expired")
+            raise ExpiredStateError("state has expired")
 
         token, id_token = Token.remote.get(code)
 
