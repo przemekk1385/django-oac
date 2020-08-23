@@ -10,7 +10,7 @@ from django.contrib.auth.backends import UserModel
 from django.db import models
 from django.utils import timezone
 
-from .exceptions import ProviderResponseError
+from .exceptions import InsufficientPayloadError, MissingKtyError, ProviderResponseError
 
 
 class TokenRemoteManager:
@@ -100,29 +100,37 @@ class Token(models.Model):
 class UserRemoteManager:
     @staticmethod
     def get_from_id_token(id_token: str) -> UserModel:
-        kid = jwt.get_unverified_header(id_token)["kid"]
+        kid = jwt.get_unverified_header(id_token).get("kid", None)
 
         # TODO: caching
 
         response = requests.get(settings.OAC["jwks_uri"])
 
         if response.status_code != 200:
-            raise FailedRequest(
+            raise ProviderResponseError(
                 "jwks request failed,"
-                f" provider responded with code {response.status_code}",
-                response.status_code,
+                f" provider responded with code {response.status_code}"
             )
 
         # TODO: auto-pick algorithm
 
-        jwt_algorithm = getattr(
-            jwt.algorithms, settings.OAC.get("jwt_algorithm", "RSAAlgorithm")
-        )
-        keys = {
-            key["kid"]: (jwt_algorithm.from_jwk(json.dumps(key)), key["alg"])
-            for key in response.json().get("keys", [])
-        }
-        key, alg = keys[kid]
+        try:
+            key = jwt.algorithms.RSAAlgorithm.from_jwk(
+                json.dumps(
+                    next(
+                        (
+                            k
+                            for k in response.json().get("keys", [])
+                            if k.get("kid") == kid and k["kty"] == "RSA"
+                        ),
+                        None,
+                    )
+                )
+            )
+        except KeyError:
+            raise MissingKtyError("missing JSON Web Key Type")
+
+        required_keys = {"first_name", "last_name", "email"}
         payload = {
             **{
                 field: value
@@ -130,12 +138,25 @@ class UserRemoteManager:
                     id_token,
                     audience=settings.OAC.get("client_id", ""),
                     key=key,
-                    algorithms=[alg],
+                    algorithms=["RS256"],
                 ).items()
-                if field in ("first_name", "last_name", "email")
+                if field in required_keys
             },
             "username": uuid4().hex,
         }
+        missing_keys = ", ".join(
+            reversed(
+                list(
+                    map(
+                        lambda key: f"'{key}'", required_keys.difference(payload.keys())
+                    )
+                )
+            )
+        )
+        if missing_keys:
+            raise InsufficientPayloadError(
+                f"payload is missing required data: {missing_keys}"
+            )
 
         # TODO: configurable lookup field
 
