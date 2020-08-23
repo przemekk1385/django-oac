@@ -4,14 +4,14 @@ from uuid import uuid4
 from django.conf import settings
 from django.contrib.auth import authenticate, login
 from django.core.handlers.wsgi import WSGIRequest
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from jwt.exceptions import PyJWTError
 
 from .apps import DjangoOACConfig
-from .exceptions import OACError
+from .exceptions import ExpiredStateError, OACError, ProviderRequestError
 
 logger = logging.getLogger(DjangoOACConfig.name)
 
@@ -21,9 +21,13 @@ def authenticate_view(request: WSGIRequest) -> HttpResponse:
     request.session["OAC_STATE_STR"] = state_str
     request.session["OAC_STATE_TIMESTAMP"] = timezone.now().timestamp()
 
-    if not settings.OAC.get('authorize_uri'):
+    if not settings.OAC.get("authorize_uri"):
         logger.error("missing 'authorize_uri'")
-        return render(request, "error.html", {"err": "config"})
+        return render(
+            request,
+            "error.html",
+            {"message": "App config is incomplete, cannot continue."},
+        )
     else:
         return redirect(
             f"{settings.OAC['authorize_uri']}"
@@ -38,20 +42,41 @@ def authenticate_view(request: WSGIRequest) -> HttpResponse:
 def callback_view(request: WSGIRequest) -> HttpResponse:
     try:
         user = authenticate(request)
+    except ProviderRequestError as e:
+        logger.error(f"raised ProviderRequestError: {e}")
+        ret = render(request, "error.html", {"message": "Bad request."}, status=400,)
+    except ExpiredStateError:
+        # no need to log
+        ret = render(
+            request,
+            "error.html",
+            {
+                "redirect": reverse("django_oac:authenticate"),
+                "message": "Logging attempt took too long, try again.",
+            },
+            status=400,
+        )
     except KeyError as e:
-        logger.error(f"missing {e}")
-        return render(request, "error.html", {"err": "config"})
+        logger.error(f"configuration error, missing {e}")
+        ret = render(
+            request,
+            "error.html",
+            {"message": "App config is incomplete, cannot continue."},
+        )
     except (OACError, PyJWTError) as e:
-        logger.error(f"raised '{e.__class__.__name__}: {e}'")
-        return render(request, "error.html", {"redirect": reverse("django_oac:authenticate")})
+        logger.error(f"raised {e.__class__.__name__}: {e}")
+        ret = render(
+            request, "error.html", {"message": "Something went wrong, cannot continue."}
+        )
     else:
         if user:
             logger.info(f"user '{user.email}' authenticated")
             login(request, user, backend="django_oac.backends.OAuthClientBackend")
+            ret = redirect("django_oac:test")
         else:
-            raise HttpResponseForbidden()
+            ret = render(request, "error.html", {"message": "Forbidden."}, status=403,)
 
-    return redirect("django_oac:test")
+    return ret
 
 
 def logout_view(request: WSGIRequest) -> HttpResponse:
