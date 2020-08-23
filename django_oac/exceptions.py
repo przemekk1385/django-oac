@@ -3,22 +3,31 @@ class OACError(Exception):
     pass
 
 
-class BadRequest(OACError):
+class ExpiredStateError(OACError):
 
     pass
 
 
-class ExpiredState(OACError):
+class InsufficientPayloadError(OACError):
 
     pass
 
 
-class FailedRequest(OACError):
-    def __init__(self, message: str, status_code: int) -> None:
-        super().__init__(message)
-        self.status_code = status_code
+class MismatchingStateError(OACError):
+
+    pass
 
 
-class MismatchingState(OACError):
+class MissingKtyError(OACError):
+
+    pass
+
+
+class ProviderRequestError(OACError):
+
+    pass
+
+
+class ProviderResponseError(OACError):
 
     pass
