@@ -5,7 +5,7 @@ import pytest
 from django.shortcuts import reverse
 from jwt.exceptions import ExpiredSignatureError, PyJWTError
 
-from django_oac.exceptions import BadRequest, FailedRequest, OACError
+from django_oac.exceptions import OACError, ProviderResponseError
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
         (PyJWTError, "foo"),
         (ExpiredSignatureError, "bar"),
         (OACError, "spam"),
-        (BadRequest, "eggs"),
+        (ProviderResponseError, "eggs"),
     ],
 )
 def test_callback_view(
@@ -28,4 +28,4 @@ def test_callback_view(
     client.get(reverse("django_oac:callback"))
 
     for record in caplog.records:
-        assert record.msg == f"raised '{raised_exception.__name__}: {expected_message}'"
+        assert record.msg == f"raised {raised_exception.__name__}: {expected_message}"

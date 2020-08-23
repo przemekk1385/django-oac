@@ -5,34 +5,35 @@ import pytest
 from django.utils import timezone
 
 from django_oac.backends import OAuthClientBackend
-from django_oac.exceptions import BadRequest, ExpiredState, MismatchingState
+from django_oac.exceptions import (
+    ExpiredStateError,
+    MismatchingStateError,
+    ProviderRequestError,
+)
 from django_oac.models import Token, User
 
 from .helpers import make_mock_request
 
 
 @pytest.mark.parametrize(
-    "request_uri,state_str,exception",
+    "request_uri,state_str,expected_exception",
     [
-        ("https://example.com/oac/callback/?code=foo", "foo", BadRequest),
+        ("https://example.com/oac/callback/?code=foo", "foo", ProviderRequestError),
         (
             "https://example.com/oac/callback/?code=foo&state=bar",
             "baz",
-            MismatchingState,
+            MismatchingStateError,
         ),
     ],
 )
-def test__parse_request_uri_method_failure(request_uri, state_str, exception):
-    with pytest.raises(exception):
+def test__parse_request_uri_method_failure(request_uri, state_str, expected_exception):
+    with pytest.raises(expected_exception):
         OAuthClientBackend._parse_request_uri(request_uri, state_str)
 
 
 def test__parse_request_uri_method_succeeded():
-    assert (
-        OAuthClientBackend._parse_request_uri(
-            "https://example.com/oac/callback/?code=foo&state=bar", "bar"
-        )
-        == "foo"
+    assert "foo" == OAuthClientBackend._parse_request_uri(
+        "https://example.com/oac/callback/?code=foo&state=bar", "bar"
     )
 
 
@@ -46,7 +47,7 @@ def test_authenticate_failure():
     )
     backend = OAuthClientBackend()
 
-    with pytest.raises(ExpiredState):
+    with pytest.raises(ExpiredStateError):
         backend.authenticate(mock_request)
 
 
@@ -56,7 +57,7 @@ def test_authenticate_failure():
 def test_authenticate_succeeded(mock_token, mock_user):
     mock_request = make_mock_request(
         "https://example.com/oac/callback/?code=foo&state=bar",
-        {"OAC_STATE_STR": "bar", "OAC_STATE_TIMESTAMP": timezone.now().timestamp(),},
+        {"OAC_STATE_STR": "bar", "OAC_STATE_TIMESTAMP": timezone.now().timestamp()},
     )
     mock_token.get.return_value = (
         Token(
@@ -74,6 +75,7 @@ def test_authenticate_succeeded(mock_token, mock_user):
 
     user = backend.authenticate(mock_request)
 
-    assert user.first_name == "foo"
-    assert user.last_name == "bar"
-    assert user.email == "foo@bar"
+    assert "foo" == user.first_name
+    assert "bar" == user.last_name
+    assert "foo@bar" == user.email
+    assert user.username

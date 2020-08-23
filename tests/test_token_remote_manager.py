@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
-from django_oac.exceptions import FailedRequest
+from django_oac.exceptions import ProviderResponseError
 from django_oac.models import Token
 
 from .helpers import make_mock_response
@@ -13,10 +13,10 @@ from .helpers import make_mock_response
 def test_get_failure(mock_request):
     mock_request.post.return_value = make_mock_response(400, {})
 
-    with pytest.raises(FailedRequest) as e_info:
+    with pytest.raises(ProviderResponseError) as e_info:
         Token.remote.get("foo")
 
-    assert e_info.value.status_code == 400
+    assert "provider responded with code 400" in str(e_info.value)
 
 
 @pytest.mark.django_db
@@ -34,7 +34,7 @@ def test_get_succeeded(mock_request):
 
     token, id_token = Token.remote.get("spam")
 
-    assert token.access_token == "foo"
-    assert token.refresh_token == "bar"
-    assert token.expires_in == 3600
+    assert "foo" == token.access_token
+    assert "bar" == token.refresh_token
+    assert 3600 == token.expires_in
     assert not token.has_expired

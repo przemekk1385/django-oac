@@ -8,7 +8,7 @@ from django.utils import timezone
 from jwcrypto.jwk import JWK
 from jwt.exceptions import ExpiredSignatureError
 
-from django_oac.exceptions import FailedRequest
+from django_oac.exceptions import ProviderResponseError
 from django_oac.models import User
 
 from .helpers import make_mock_response
@@ -21,10 +21,10 @@ def test_get_failed_request(mock_jwt, mock_request):
     mock_jwt.get_unverified_header.return_value = {"kid": "foo"}
     mock_request.get.return_value = make_mock_response(400, {})
 
-    with pytest.raises(FailedRequest) as e_info:
+    with pytest.raises(ProviderResponseError) as e_info:
         User.remote.get_from_id_token("foo")
 
-    assert e_info.value.status_code == 400
+    assert "provider responded with code 400" in str(e_info.value)
 
 
 @pytest.mark.django_db
@@ -74,7 +74,7 @@ def test_get_succeeded(mock_request):
 
     user = User.remote.get_from_id_token(id_token)
 
-    assert user.first_name == "spam"
-    assert user.last_name == "eggs"
-    assert user.email == "spam@eggs"
+    assert "spam" == user.first_name
+    assert "eggs" == user.last_name
+    assert "spam@eggs" == user.email
     assert user.username
