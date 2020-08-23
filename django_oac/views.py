@@ -62,11 +62,15 @@ def callback_view(request: WSGIRequest) -> HttpResponse:
             request,
             "error.html",
             {"message": "App config is incomplete, cannot continue."},
+            status=500,
         )
     except (OACError, PyJWTError) as e:
         logger.error(f"raised {e.__class__.__name__}: {e}")
         ret = render(
-            request, "error.html", {"message": "Something went wrong, cannot continue."}
+            request,
+            "error.html",
+            {"message": "Something went wrong, cannot continue."},
+            status=500,
         )
     else:
         if user:
