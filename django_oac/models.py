@@ -1,5 +1,6 @@
 import json
-from typing import Tuple, Union
+import logging
+from typing import Callable, Tuple, Union
 from uuid import uuid4
 
 import jwt
@@ -10,7 +11,15 @@ from django.contrib.auth.backends import UserModel
 from django.db import models
 from django.utils import timezone
 
+from .apps import DjangoOACConfig
 from .exceptions import InsufficientPayloadError, MissingKtyError, ProviderResponseError
+
+logger = logging.getLogger(DjangoOACConfig.name)
+get_missing_keys: Callable[
+    [set, Union[list, set, tuple]], str
+] = lambda required, given: ", ".join(
+    reversed(list(map(lambda key: f"'{key}'", required.difference(given))))
+)
 
 
 class TokenRemoteManager:
@@ -36,18 +45,32 @@ class TokenRemoteManager:
                 f" provider responded with code {response.status_code}"
             )
 
-        # TODO: handle token_type
+        # TODO:
+        #  handle token_type
 
         json_dict = response.json()
-        id_token = json_dict.pop("id_token", None)
+
+        missing = get_missing_keys(
+            {"access_token", "refresh_token", "expires_in", "id_token"},
+            json_dict.keys(),
+        )
+        if missing:
+            raise ProviderResponseError(
+                f"provider response is missing required data: {missing}"
+            )
+
+        id_token = json_dict.pop("id_token")
+        token = Token(
+            access_token=json_dict["access_token"],
+            refresh_token=json_dict["refresh_token"],
+            expires_in=json_dict["expires_in"],
+            issued=timezone.now(),
+        )
+
+        logger.info(f"got access token and id token")
 
         return (
-            Token(
-                access_token=json_dict["access_token"],
-                refresh_token=json_dict["refresh_token"],
-                expires_in=json_dict["expires_in"],
-                issued=timezone.now(),
-            ),
+            token,
             id_token,
         )
 
@@ -130,33 +153,17 @@ class UserRemoteManager:
         except KeyError:
             raise MissingKtyError("missing JSON Web Key Type")
 
-        required_keys = {"first_name", "last_name", "email"}
-        payload = {
-            **{
-                field: value
-                for field, value in jwt.decode(
-                    id_token,
-                    audience=settings.OAC.get("client_id", ""),
-                    key=key,
-                    algorithms=["RS256"],
-                ).items()
-                if field in required_keys
-            },
-            "username": uuid4().hex,
-        }
-        missing_keys = ", ".join(
-            reversed(
-                list(
-                    map(
-                        lambda key: f"'{key}'", required_keys.difference(payload.keys())
-                    )
-                )
-            )
+        payload = jwt.decode(
+            id_token,
+            audience=settings.OAC.get("client_id", ""),
+            key=key,
+            algorithms=["RS256"],
         )
 
-        if missing_keys:
+        missing = get_missing_keys({"first_name", "last_name", "email"}, payload.keys())
+        if missing:
             raise InsufficientPayloadError(
-                f"payload is missing required data: {missing_keys}"
+                f"payload is missing required data: {missing}"
             )
 
         # TODO: configurable lookup field
@@ -164,8 +171,15 @@ class UserRemoteManager:
         try:
             user = UserModel.objects.get(email=payload.get("email"))
         except UserModel.DoesNotExist:
-            user = UserModel.objects.create(**payload)
+            logger.info(f"created new user {payload['email']}")
+            user = UserModel.objects.create(
+                first_name=payload["first_name"],
+                last_name=payload["last_name"],
+                email=payload["email"],
+                username=uuid4().hex,
+            )
         else:
+            logger.info(f"matched existing user {payload['email']}")
             if user.token_set.exists():
                 user.token_set.delete()
 

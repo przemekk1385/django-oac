@@ -8,6 +8,7 @@ from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from ipware import get_client_ip
 from jwt.exceptions import PyJWTError
 
 from .apps import DjangoOACConfig
@@ -18,8 +19,13 @@ logger = logging.getLogger(DjangoOACConfig.name)
 
 def authenticate_view(request: WSGIRequest) -> HttpResponse:
     state_str = uuid4().hex
+    client_ip, is_routable = get_client_ip(request)
+
     request.session["OAC_STATE_STR"] = state_str
     request.session["OAC_STATE_TIMESTAMP"] = timezone.now().timestamp()
+    request.session["OAC_CLIENT_IP"] = client_ip or "unknown"
+
+    logger.info(f"started login attempt from  {request.session['OAC_CLIENT_IP']}")
 
     if not settings.OAC.get("authorize_uri"):
         logger.error("missing 'authorize_uri'")
@@ -41,6 +47,8 @@ def authenticate_view(request: WSGIRequest) -> HttpResponse:
 
 
 def callback_view(request: WSGIRequest) -> HttpResponse:
+    logger.info(f"callback for {request.session.get('OAC_CLIENT_IP', 'unset')}")
+
     try:
         user = authenticate(request)
     except ProviderRequestError as e:

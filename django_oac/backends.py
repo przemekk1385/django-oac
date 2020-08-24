@@ -1,3 +1,4 @@
+import logging
 from typing import Union
 from urllib.parse import parse_qsl, urlparse
 
@@ -7,8 +8,11 @@ from django.contrib.auth.backends import BaseBackend, UserModel
 from django.core.handlers.wsgi import WSGIRequest
 from django.utils import timezone
 
+from .apps import DjangoOACConfig
 from .exceptions import ExpiredStateError, MismatchingStateError, ProviderRequestError
 from .models import Token, User
+
+logger = logging.getLogger(DjangoOACConfig.name)
 
 
 class OAuthClientBackend(BaseBackend):
@@ -55,6 +59,7 @@ class OAuthClientBackend(BaseBackend):
         token, id_token = Token.remote.get(code)
 
         # TODO: additional class for creating user
+        logger.info("got tokens")
 
         user = User.remote.get_from_id_token(id_token)
 
