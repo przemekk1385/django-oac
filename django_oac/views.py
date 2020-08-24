@@ -2,7 +2,7 @@ from logging import LoggerAdapter, getLogger
 from uuid import uuid4
 
 from django.conf import settings
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
@@ -12,7 +12,12 @@ from ipware import get_client_ip
 from jwt.exceptions import PyJWTError
 
 from .apps import DjangoOACConfig
-from .exceptions import ExpiredStateError, OACError, ProviderRequestError
+from .exceptions import (
+    ExpiredStateError,
+    OACError,
+    ProviderRequestError,
+    ProviderResponseError,
+)
 
 
 def authenticate_view(request: WSGIRequest) -> HttpResponse:
@@ -105,13 +110,56 @@ def callback_view(request: WSGIRequest) -> HttpResponse:
             login(request, user, backend="django_oac.backends.OAuthClientBackend")
             ret = redirect("django_oac:test")
         else:
-            ret = render(request, "error.html", {"message": "Forbidden."}, status=403,)
+            ret = render(request, "error.html", {"message": "Forbidden."}, status=403)
 
     return ret
 
 
 def logout_view(request: WSGIRequest) -> HttpResponse:
-    pass
+    logger = LoggerAdapter(
+        getLogger(DjangoOACConfig.name),
+        {
+            "scope": "logout_view",
+            "ip_state": (
+                f"{request.session.get('OAC_CLIENT_IP', 'n/a')}"
+                f":{request.session.get('OAC_STATE_STR', 'n/a')}"
+            ),
+        },
+    )
+    logger.info("logout request")
+
+    token = request.user.token_set.last()
+
+    ret = redirect("django_oac:test")
+    if token:
+        try:
+            token.revoke()
+        except KeyError as e:
+            logger.error(f"configuration error, missing {e}")
+            ret = render(
+                request,
+                "error.html",
+                {"message": "App config is incomplete, cannot continue."},
+                status=500,
+            )
+        except ProviderResponseError as e:
+            logger.error(f"raised ProviderResponseError: {e}")
+            ret = render(
+                request,
+                "error.html",
+                {"message": "Something went wrong, cannot continue."},
+                status=500,
+            )
+        else:
+            logger.info(
+                f"refresh token for user '{request.user.email}' has been revoked"
+            )
+            token.delete()
+
+    logout(request)
+    logger.info(f"user '{request.user.email}' logged out")
+
+    return ret
 
 
 def test_view(request: WSGIRequest) -> HttpResponse:

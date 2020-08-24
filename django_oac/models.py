@@ -94,6 +94,14 @@ class Token(models.Model):
             "client_secret": settings.OAC.get("client_secret", ""),
         }
 
+    def _prepare_revoke_refresh_token_request_payload(self) -> dict:
+        return {
+            "token": self.refresh_token,
+            "token_type_hint": "refresh_token",
+            "client_id": settings.get("client_id", ""),
+            "client_secret": settings.get("client_secret", ""),
+        }
+
     @property
     def has_expired(self) -> bool:
         return timezone.now() >= pendulum.instance(self.issued).add(
@@ -119,6 +127,18 @@ class Token(models.Model):
         self.expires_in = json_dict.get("expires_in", self.expires_in)
         self.issued = timezone.now()
         self.save()
+
+    def revoke(self) -> None:
+        response = requests.post(
+            settings.OAC["revoke_uri"],
+            self._prepare_revoke_refresh_token_request_payload(),
+        )
+
+        if response.status_code != 200:
+            raise ProviderResponseError(
+                "revoke refresh token request failed,"
+                f" provider responded with code {response.status_code}",
+            )
 
 
 class UserRemoteManager:
