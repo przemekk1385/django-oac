@@ -54,6 +54,8 @@ class OAuthClientBackend(BaseBackend):
 
         token, id_token = Token.remote.get(code)
 
+        # TODO: additional class for creating user
+
         user = User.remote.get_from_id_token(id_token)
 
         token.user = user
