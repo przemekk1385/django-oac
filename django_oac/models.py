@@ -85,6 +85,9 @@ class Token(models.Model):
 
     remote = TokenRemoteManager()
 
+    def __str__(self) -> str:
+        return f"issued on {self.issued} for {self.user.username}"
+
     def _prepare_refresh_access_token_request_payload(self) -> dict:
         return {
             "grant_type": "refresh_token",
