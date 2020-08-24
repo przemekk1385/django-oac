@@ -18,7 +18,7 @@ from .helpers import make_mock_response
 @patch("django_oac.models.requests")
 @patch("django_oac.models.jwt")
 def test_get_failed_request(mock_jwt, mock_request):
-    mock_jwt.get_unverified_header.return_value = {"kid": "foo"}
+    mock_jwt.get_unverified_header.return_value = {}
     mock_request.get.return_value = make_mock_response(400, {})
 
     with pytest.raises(ProviderResponseError) as e_info:
