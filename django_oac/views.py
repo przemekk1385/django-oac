@@ -1,4 +1,4 @@
-import logging
+from logging import LoggerAdapter, getLogger
 from uuid import uuid4
 
 from django.conf import settings
@@ -14,8 +14,6 @@ from jwt.exceptions import PyJWTError
 from .apps import DjangoOACConfig
 from .exceptions import ExpiredStateError, OACError, ProviderRequestError
 
-logger = logging.getLogger(DjangoOACConfig.name)
-
 
 def authenticate_view(request: WSGIRequest) -> HttpResponse:
     state_str = uuid4().hex
@@ -25,7 +23,17 @@ def authenticate_view(request: WSGIRequest) -> HttpResponse:
     request.session["OAC_STATE_TIMESTAMP"] = timezone.now().timestamp()
     request.session["OAC_CLIENT_IP"] = client_ip or "unknown"
 
-    logger.info(f"started login attempt from  {request.session['OAC_CLIENT_IP']}")
+    logger = LoggerAdapter(
+        getLogger(DjangoOACConfig.name),
+        {
+            "scope": "authenticate_view",
+            "ip_state": (
+                f"{request.session['OAC_CLIENT_IP']}"
+                f":{request.session['OAC_STATE_STR']}"
+            ),
+        },
+    )
+    logger.info("authentication request")
 
     if not settings.OAC.get("authorize_uri"):
         logger.error("missing 'authorize_uri'")
@@ -47,7 +55,17 @@ def authenticate_view(request: WSGIRequest) -> HttpResponse:
 
 
 def callback_view(request: WSGIRequest) -> HttpResponse:
-    logger.info(f"callback for {request.session.get('OAC_CLIENT_IP', 'unset')}")
+    logger = LoggerAdapter(
+        getLogger(DjangoOACConfig.name),
+        {
+            "scope": "callback_view",
+            "ip_state": (
+                f"{request.session.get('OAC_CLIENT_IP', 'n/a')}"
+                f":{request.session.get('OAC_STATE_STR', 'n/a')}"
+            ),
+        },
+    )
+    logger.info("callback request")
 
     try:
         user = authenticate(request)
@@ -55,7 +73,7 @@ def callback_view(request: WSGIRequest) -> HttpResponse:
         logger.error(f"raised ProviderRequestError: {e}")
         ret = render(request, "error.html", {"message": "Bad request."}, status=400,)
     except ExpiredStateError:
-        # no need to log
+        logger.info(f"state expired")
         ret = render(
             request,
             "error.html",

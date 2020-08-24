@@ -1,5 +1,5 @@
 import json
-import logging
+from logging import getLogger
 from typing import Callable, Tuple, Union
 from uuid import uuid4
 
@@ -14,7 +14,7 @@ from django.utils import timezone
 from .apps import DjangoOACConfig
 from .exceptions import InsufficientPayloadError, MissingKtyError, ProviderResponseError
 
-logger = logging.getLogger(DjangoOACConfig.name)
+logger = getLogger(DjangoOACConfig.name)
 get_missing_keys: Callable[
     [set, Union[list, set, tuple]], str
 ] = lambda required, given: ", ".join(
@@ -66,8 +66,6 @@ class TokenRemoteManager:
             expires_in=json_dict["expires_in"],
             issued=timezone.now(),
         )
-
-        logger.info(f"got access token and id token")
 
         return (
             token,
@@ -178,7 +176,10 @@ class UserRemoteManager:
         try:
             user = UserModel.objects.get(email=payload.get("email"))
         except UserModel.DoesNotExist:
-            logger.info(f"created new user {payload['email']}")
+            logger.info(
+                f"created new user '{payload['email']}'",
+                extra={"scope": "model", "ip_state": "n/a:n/a"},
+            )
             user = UserModel.objects.create(
                 first_name=payload["first_name"],
                 last_name=payload["last_name"],
@@ -186,9 +187,12 @@ class UserRemoteManager:
                 username=uuid4().hex,
             )
         else:
-            logger.info(f"matched existing user {payload['email']}")
+            logger.info(
+                f"matched existing user '{payload['email']}'",
+                extra={"scope": "model", "ip_state": "n/a:n/a"},
+            )
             if user.token_set.exists():
-                user.token_set.delete()
+                user.token_set.all().delete()
 
         return user
 

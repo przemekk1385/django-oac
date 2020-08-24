@@ -20,7 +20,14 @@ class DjangoOACConfig(AppConfig):
             log_dir / f"{self.name}.log", maxBytes=(5 * 1024 ** 2),
         )
         fh.setFormatter(
-            logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+            logging.Formatter(
+                "%(asctime)s"
+                " - %(name)s"
+                " - %(scope)s"
+                " - %(ip_state)s"
+                " - %(levelname)s"
+                " - %(message)s"
+            )
         )
         logger.addHandler(fh)
         logger.setLevel("INFO")
