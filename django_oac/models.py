@@ -120,10 +120,10 @@ class UserRemoteManager:
                     next(
                         (
                             k
-                            for k in response.json().get("keys", [])
+                            for k in response.json().get("keys", [{}])
                             if k.get("kid") == kid and k["kty"] == "RSA"
                         ),
-                        None,
+                        {},
                     )
                 )
             )
@@ -153,6 +153,7 @@ class UserRemoteManager:
                 )
             )
         )
+
         if missing_keys:
             raise InsufficientPayloadError(
                 f"payload is missing required data: {missing_keys}"
