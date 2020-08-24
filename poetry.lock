@@ -142,6 +142,14 @@ argon2 = ["argon2-cffi (>=16.1.0)"]
 bcrypt = ["bcrypt"]
 
 [[package]]
+category = "main"
+description = "A Django utility application that returns client's real IP address"
+name = "django-ipware"
+optional = false
+python-versions = "*"
+version = "3.0.1"
+
+[[package]]
 category = "dev"
 description = "An SSL-enabled development server for Django"
 name = "django-sslserver"
@@ -427,7 +435,7 @@ python-versions = "*"
 version = "0.2.5"
 
 [metadata]
-content-hash = "85e9b1e0587bbed9f37617e9974ee7f24b1d0ec719ea0af00e3ab213d383b49e"
+content-hash = "eb40b11b20a3c9f2be2ce3fd1647432910296c4ff992742099c1eaf7d0e95dd5"
 python-versions = "^3.8"
 
 [metadata.files]
@@ -521,6 +529,9 @@ cryptography = [
 django = [
     {file = "Django-3.1-py3-none-any.whl", hash = "sha256:1a63f5bb6ff4d7c42f62a519edc2adbb37f9b78068a5a862beff858b68e3dc8b"},
     {file = "Django-3.1.tar.gz", hash = "sha256:2d390268a13c655c97e0e2ede9d117007996db692c1bb93eabebd4fb7ea7012b"},
+]
+django-ipware = [
+    {file = "django-ipware-3.0.1.tar.gz", hash = "sha256:73a640a5bff00aa7503a35e92e462001cfabb07d73d649c262f117423beee953"},
 ]
 django-sslserver = [
     {file = "django_sslserver-0.22-py3-none-any.whl", hash = "sha256:c598a363d2ccdc2421c08ddb3d8b0973f80e8e47a3a5b74e4a2896f21c2947c5"},
