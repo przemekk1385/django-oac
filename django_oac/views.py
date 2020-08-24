@@ -27,6 +27,7 @@ def authenticate_view(request: WSGIRequest) -> HttpResponse:
             request,
             "error.html",
             {"message": "App config is incomplete, cannot continue."},
+            status=500,
         )
     else:
         return redirect(
