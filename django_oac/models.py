@@ -125,7 +125,8 @@ class UserRemoteManager:
     def get_from_id_token(id_token: str) -> UserModel:
         kid = jwt.get_unverified_header(id_token).get("kid", None)
 
-        # TODO: caching
+        # TODO:
+        #  caching
 
         response = requests.get(settings.OAC["jwks_uri"])
 
@@ -135,7 +136,8 @@ class UserRemoteManager:
                 f" provider responded with code {response.status_code}"
             )
 
-        # TODO: auto-pick algorithm
+        # TODO:
+        #  auto-pick algorithm
 
         try:
             key = jwt.algorithms.RSAAlgorithm.from_jwk(
@@ -166,7 +168,9 @@ class UserRemoteManager:
                 f"payload is missing required data: {missing}"
             )
 
-        # TODO: configurable lookup field
+        # TODO:
+        #  configurable lookup field
+        #  class for creating user
 
         try:
             user = UserModel.objects.get(email=payload.get("email"))

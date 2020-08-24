@@ -49,7 +49,8 @@ class OAuthClientBackend(BaseBackend):
 
         code = self._parse_request_uri(request_uri, state_str)
 
-        # TODO: configurable state expiration time
+        # TODO:
+        #  configurable state expiration time
 
         if timezone.now() >= pendulum.from_timestamp(
             state_timestamp + 300, tz=settings.TIME_ZONE
@@ -58,7 +59,6 @@ class OAuthClientBackend(BaseBackend):
 
         token, id_token = Token.remote.get(code)
 
-        # TODO: additional class for creating user
         logger.info("got tokens")
 
         user = User.remote.get_from_id_token(id_token)

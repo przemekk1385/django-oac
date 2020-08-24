@@ -65,4 +65,5 @@ def settings_oac_uris_check(app_configs, **kwargs):
     return errors
 
 
-# TODO: check environmental variables 'client_id', 'client_secret'
+# TODO:
+#  check environmental variables 'client_id', 'client_secret'
