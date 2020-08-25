@@ -21,9 +21,9 @@ def test_get_from_id_token_pyjwt_error():
 
 @patch("django_oac.models.requests")
 @patch("django_oac.models.jwt")
-def test_get_from_id_token_provider_response_error(mock_jwt, mock_request):
+def test_get_from_id_token_provider_response_error(mock_jwt, mock_requests):
     mock_jwt.get_unverified_header.return_value = {}
-    mock_request.get.return_value = make_mock_response(400, {})
+    mock_requests.get.return_value = make_mock_response(400, {})
 
     with pytest.raises(ProviderResponseError) as e_info:
         User.remote.get_from_id_token("foo")
@@ -32,7 +32,7 @@ def test_get_from_id_token_provider_response_error(mock_jwt, mock_request):
 
 
 @patch("django_oac.models.requests")
-def test_get_from_id_token_expired_signature_error(mock_request):
+def test_get_from_id_token_expired_signature_error(mock_requests):
     jwk = JWK.generate(kty="RSA", use="sig", alg="RS256", kid="foo", x5t="foo")
     secret = jwk.export_to_pem(private_key=True, password=None).decode("utf-8")
     id_token = jwt.encode(
@@ -47,7 +47,7 @@ def test_get_from_id_token_expired_signature_error(mock_request):
         algorithm="RS256",
         headers={"alg": "RS256", "kid": "foo", "x5t": "foo"},
     ).decode("utf-8")
-    mock_request.get.return_value = make_mock_response(
+    mock_requests.get.return_value = make_mock_response(
         200, {"keys": [json.loads(jwk.export_public())]},
     )
 
@@ -63,7 +63,7 @@ def test_get_from_id_token_expired_signature_error(mock_request):
         ([{"kid": "foo"}], MissingKtyError),
     ],
 )
-def test_get_from_id_token_incorrect_jwk(mock_request, jwks, exception):
+def test_get_from_id_token_incorrect_jwk(mock_requests, jwks, exception):
     jwk = JWK.generate(kty="RSA", use="sig", alg="RS256", kid="foo", x5t="foo")
     secret = jwk.export_to_pem(private_key=True, password=None).decode("utf-8")
     id_token = jwt.encode(
@@ -78,18 +78,18 @@ def test_get_from_id_token_incorrect_jwk(mock_request, jwks, exception):
         algorithm="RS256",
         headers={"alg": "RS256", "kid": "foo", "x5t": "foo"},
     ).decode("utf-8")
-    mock_request.get.return_value = make_mock_response(200, {"keys": jwks},)
+    mock_requests.get.return_value = make_mock_response(200, {"keys": jwks},)
 
     with pytest.raises(exception):
         User.remote.get_from_id_token(id_token)
 
 
 @patch("django_oac.models.requests")
-def test_get_from_id_token_missing_jwk(mock_request):
+def test_get_from_id_token_missing_jwk(mock_requests):
     jwk_for_encode = JWK.generate(
         kty="RSA", use="sig", alg="RS256", kid="foo", x5t="foo"
     )
-    jwk_foc_decode = JWK.generate(
+    jwk_for_decode = JWK.generate(
         kty="RSA", use="sig", alg="RS256", kid="bar", x5t="bar"
     )
     secret = jwk_for_encode.export_to_pem(private_key=True, password=None).decode(
@@ -107,8 +107,8 @@ def test_get_from_id_token_missing_jwk(mock_request):
         algorithm="RS256",
         headers={"alg": "RS256", "kid": "foo", "x5t": "foo"},
     ).decode("utf-8")
-    mock_request.get.return_value = make_mock_response(
-        200, {"keys": [json.loads(jwk_foc_decode.export_public())]},
+    mock_requests.get.return_value = make_mock_response(
+        200, {"keys": [json.loads(jwk_for_decode.export_public())]},
     )
 
     with pytest.raises(PyJWTError):
@@ -117,7 +117,7 @@ def test_get_from_id_token_missing_jwk(mock_request):
 
 @pytest.mark.django_db
 @patch("django_oac.models.requests")
-def test_get_succeeded(mock_request):
+def test_get_succeeded(mock_requests):
     jwk = JWK.generate(kty="RSA", use="sig", alg="RS256", kid="foo", x5t="foo")
     secret = jwk.export_to_pem(private_key=True, password=None).decode("utf-8")
     id_token = jwt.encode(
@@ -131,7 +131,7 @@ def test_get_succeeded(mock_request):
         algorithm="RS256",
         headers={"alg": "RS256", "kid": "foo", "x5t": "foo"},
     ).decode("utf-8")
-    mock_request.get.return_value = make_mock_response(
+    mock_requests.get.return_value = make_mock_response(
         200, {"keys": [json.loads(jwk.export_public())]},
     )
 

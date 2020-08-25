@@ -10,8 +10,8 @@ from .helpers import make_mock_response
 
 @pytest.mark.django_db
 @patch("django_oac.models.requests")
-def test_get_failure(mock_request):
-    mock_request.post.return_value = make_mock_response(400, {})
+def test_get_failure(mock_requests):
+    mock_requests.post.return_value = make_mock_response(400, {})
 
     with pytest.raises(ProviderResponseError) as e_info:
         Token.remote.get("foo")
@@ -21,8 +21,8 @@ def test_get_failure(mock_request):
 
 @pytest.mark.django_db
 @patch("django_oac.models.requests")
-def test_get_succeeded(mock_request):
-    mock_request.post.return_value = make_mock_response(
+def test_get_succeeded(mock_requests):
+    mock_requests.post.return_value = make_mock_response(
         200,
         {
             "access_token": "foo",

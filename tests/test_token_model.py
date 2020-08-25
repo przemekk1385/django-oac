@@ -26,14 +26,14 @@ def test_has_expired_property():
 
 @pytest.mark.django_db
 @patch("django_oac.models.requests")
-def test_refresh_method_failure(mock_request):
+def test_refresh_method_failure(mock_requests):
     token = Token.objects.create(
         access_token="foo",
         refresh_token="bar",
         expires_in=3600,
         issued=pendulum.instance(timezone.now()).subtract(seconds=3601),
     )
-    mock_request.post.return_value = make_mock_response(400, {},)
+    mock_requests.post.return_value = make_mock_response(400, {},)
 
     with pytest.raises(ProviderResponseError) as e_info:
         token.refresh()
@@ -43,14 +43,14 @@ def test_refresh_method_failure(mock_request):
 
 @pytest.mark.django_db
 @patch("django_oac.models.requests")
-def test_refresh_method_succeeded(mock_request):
+def test_refresh_method_succeeded(mock_requests):
     token = Token.objects.create(
         access_token="foo",
         refresh_token="bar",
         expires_in=3600,
         issued=pendulum.instance(timezone.now()).subtract(seconds=3601),
     )
-    mock_request.post.return_value = make_mock_response(
+    mock_requests.post.return_value = make_mock_response(
         200, {"access_token": "spam", "refresh_token": "eggs", "expires_in": 3600},
     )
 

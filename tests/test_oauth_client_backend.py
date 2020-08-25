@@ -18,7 +18,7 @@ from .helpers import make_mock_request
 @pytest.mark.parametrize(
     "request_uri,state_str,expected_exception",
     [
-        ("https://example.com/oac/callback/?code=foo", "foo", ProviderRequestError),
+        ("https://example.com/oac/callback/?code=foo", "test", ProviderRequestError),
         (
             "https://example.com/oac/callback/?code=foo&state=bar",
             "baz",
@@ -33,15 +33,14 @@ def test__parse_request_uri_method_failure(request_uri, state_str, expected_exce
 
 def test__parse_request_uri_method_succeeded():
     assert "foo" == OAuthClientBackend._parse_request_uri(
-        "https://example.com/oac/callback/?code=foo&state=bar", "bar"
+        "https://example.com/oac/callback/?code=foo&state=test", "test"
     )
 
 
 def test_authenticate_failure():
     mock_request = make_mock_request(
-        "https://example.com/oac/callback/?code=foo&state=bar",
-        {
-            "OAC_STATE_STR": "bar",
+        absolute_uri="https://example.com/oac/callback/?code=foo&state=test",
+        session_dict={
             "OAC_STATE_TIMESTAMP": timezone.now().timestamp() - 301,
         },
     )
@@ -56,8 +55,10 @@ def test_authenticate_failure():
 @patch("django_oac.backends.Token.remote")
 def test_authenticate_succeeded(mock_token, mock_user):
     mock_request = make_mock_request(
-        "https://example.com/oac/callback/?code=foo&state=bar",
-        {"OAC_STATE_STR": "bar", "OAC_STATE_TIMESTAMP": timezone.now().timestamp()},
+        absolute_uri="https://example.com/oac/callback/?code=foo&state=test",
+        session_dict={
+            "OAC_STATE_TIMESTAMP": timezone.now().timestamp(),
+        },
     )
     mock_token.get.return_value = (
         Token(
@@ -71,8 +72,8 @@ def test_authenticate_succeeded(mock_token, mock_user):
     mock_user.get_from_id_token.return_value = User.objects.create(
         first_name="foo", last_name="bar", email="foo@bar", username=uuid4().hex
     )
-    backend = OAuthClientBackend()
 
+    backend = OAuthClientBackend()
     user = backend.authenticate(mock_request)
 
     assert "foo" == user.first_name
