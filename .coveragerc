@@ -1,0 +1,11 @@
+[report]
+show_missing = True
+include =
+    django_oac/*
+omit =
+    django_oac/migrations/*
+    django_oac/apps.py
+    django_oac/checks.py
+exclude_lines =
+    def __repr__
+    def __str__
