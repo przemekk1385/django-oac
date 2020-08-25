@@ -60,3 +60,20 @@ def test_refresh_method_succeeded(mock_requests):
     assert "eggs" == token.refresh_token
     assert 3600 == token.expires_in
     assert not token.has_expired
+
+
+@pytest.mark.django_db
+@patch("django_oac.models.requests")
+def test_revoke_method_failure(mock_requests):
+    token = Token.objects.create(
+        access_token="foo",
+        refresh_token="bar",
+        expires_in=3600,
+        issued=pendulum.instance(timezone.now()).subtract(seconds=3601),
+    )
+    mock_requests.post.return_value = make_mock_response(400, {},)
+
+    with pytest.raises(ProviderResponseError) as e_info:
+        token.revoke()
+
+    assert "provider responded with code 400" in str(e_info.value)

@@ -40,9 +40,7 @@ def test__parse_request_uri_method_succeeded():
 def test_authenticate_failure():
     mock_request = make_mock_request(
         absolute_uri="https://example.com/oac/callback/?code=foo&state=test",
-        session_dict={
-            "OAC_STATE_TIMESTAMP": timezone.now().timestamp() - 301,
-        },
+        session_dict={"OAC_STATE_TIMESTAMP": timezone.now().timestamp() - 301,},
     )
     backend = OAuthClientBackend()
 
@@ -56,9 +54,7 @@ def test_authenticate_failure():
 def test_authenticate_succeeded(mock_token, mock_user):
     mock_request = make_mock_request(
         absolute_uri="https://example.com/oac/callback/?code=foo&state=test",
-        session_dict={
-            "OAC_STATE_TIMESTAMP": timezone.now().timestamp(),
-        },
+        session_dict={"OAC_STATE_TIMESTAMP": timezone.now().timestamp(),},
     )
     mock_token.get.return_value = (
         Token(

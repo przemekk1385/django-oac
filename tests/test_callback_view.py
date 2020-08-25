@@ -1,7 +1,9 @@
 import logging
 from unittest.mock import patch
+from uuid import uuid4
 
 import pytest
+from django.contrib.auth.backends import UserModel
 from django.shortcuts import reverse
 from jwt.exceptions import ExpiredSignatureError
 
@@ -26,7 +28,7 @@ logger = logging.getLogger(DjangoOACConfig.name)
         (ExpiredSignatureError, "eggs", "raised ExpiredSignatureError: eggs", 500),
     ],
 )
-def test_callback_view(
+def test_callback_view_failure(
     mock_authenticate,
     exception,
     message,
@@ -52,3 +54,24 @@ def test_callback_view(
         "msg",
         None,
     )
+
+
+@pytest.mark.django_db
+@patch("django_oac.views.authenticate")
+def test_callback_view_user_authenticated(mock_authenticate, client):
+    mock_authenticate.return_value = UserModel.objects.create(
+        first_name="spam", last_name="eggs", email="spam@eggs", username=uuid4().hex
+    )
+
+    response = client.get(reverse("django_oac:callback"))
+
+    assert 302 == response.status_code
+
+
+@patch("django_oac.views.authenticate")
+def test_callback_view_user_not_authenticated(mock_authenticate, client):
+    mock_authenticate.return_value = None
+
+    response = client.get(reverse("django_oac:callback"))
+
+    assert 403 == response.status_code

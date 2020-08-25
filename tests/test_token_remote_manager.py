@@ -10,13 +10,20 @@ from .helpers import make_mock_response
 
 @pytest.mark.django_db
 @patch("django_oac.models.requests")
-def test_get_failure(mock_requests):
-    mock_requests.post.return_value = make_mock_response(400, {})
+@pytest.mark.parametrize(
+    "status_code,expected_message",
+    [
+        (400, "provider responded with code 400"),
+        (200, "provider response is missing required data"),
+    ],
+)
+def test_get_failure(mock_requests, status_code, expected_message):
+    mock_requests.post.return_value = make_mock_response(status_code, {})
 
     with pytest.raises(ProviderResponseError) as e_info:
         Token.remote.get("foo")
 
-    assert "provider responded with code 400" in str(e_info.value)
+    assert expected_message in str(e_info.value)
 
 
 @pytest.mark.django_db
