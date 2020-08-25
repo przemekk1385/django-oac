@@ -44,9 +44,6 @@ class OAuthClientMiddleware:
                         f"access token for user '{user.email}' has been refreshed"
                     )
 
-                if token.has_expired:
-                    token.refresh()
-
         response = self.get_response(request)
 
         return response
