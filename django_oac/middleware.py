@@ -27,10 +27,7 @@ class OAuthClientMiddleware:
         )
         user = request.user
         if user.is_authenticated:
-            try:
-                token = user.token_set.last()
-            except Token.DoesNotExist:
-                token = None
+            token = user.token_set.last()
 
             if token and token.has_expired:
                 logger.info(f"access token for user '{user.email}' has expired")
@@ -38,6 +35,7 @@ class OAuthClientMiddleware:
                     token.refresh()
                 except ProviderRequestError as e:
                     logger.error(f"raised ProviderRequestError: {e}")
+                    token.delete()
                     logout(request)
                 else:
                     logger.info(
