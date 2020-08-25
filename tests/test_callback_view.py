@@ -35,7 +35,6 @@ def test_callback_view(
     client,
     caplog,
 ):
-    caplog.set_level(logging.ERROR, logger=DjangoOACConfig.name)
     mock_authenticate.side_effect = exception(message)
 
     response = client.get(reverse("django_oac:callback"))
@@ -46,7 +45,7 @@ def test_callback_view(
             (
                 record
                 for record in caplog.records
-                if record.name == DjangoOACConfig.name
+                if record.name == DjangoOACConfig.name and record.levelname == "ERROR"
             ),
             None,
         ),
