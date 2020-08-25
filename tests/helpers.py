@@ -1,5 +1,6 @@
 from typing import Union
 from unittest.mock import MagicMock, PropertyMock
+from uuid import uuid4
 
 
 def make_mock_request(
@@ -56,4 +57,5 @@ def make_mock_user(
     type(mock_user).email = PropertyMock(return_value=email)
     type(mock_user).is_authenticated = PropertyMock(return_value=is_authenticated)
     type(mock_user).token_set = PropertyMock(return_value=token_set)
+    type(mock_user).username = PropertyMock(return_value=uuid4().hex)
     return mock_user
