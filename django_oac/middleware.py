@@ -6,8 +6,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponseBase
 
 from .apps import DjangoOACConfig
-from .exceptions import ProviderRequestError
-from .models import Token
+from .exceptions import ProviderResponseError
 
 
 class OAuthClientMiddleware:
@@ -33,8 +32,8 @@ class OAuthClientMiddleware:
                 logger.info(f"access token for user '{user.email}' has expired")
                 try:
                     token.refresh()
-                except ProviderRequestError as e:
-                    logger.error(f"raised ProviderRequestError: {e}")
+                except ProviderResponseError as e:
+                    logger.error(f"raised ProviderResponseError: {e}")
                     token.delete()
                     logout(request)
                 else:
