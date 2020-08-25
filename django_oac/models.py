@@ -98,8 +98,8 @@ class Token(models.Model):
         return {
             "token": self.refresh_token,
             "token_type_hint": "refresh_token",
-            "client_id": settings.get("client_id", ""),
-            "client_secret": settings.get("client_secret", ""),
+            "client_id": settings.OAC.get("client_id", ""),
+            "client_secret": settings.OAC.get("client_secret", ""),
         }
 
     @property
