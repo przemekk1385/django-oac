@@ -40,6 +40,10 @@ class OAuthClientMiddleware:
                     logger.info(
                         f"access token for user '{user.email}' has been refreshed"
                     )
+            elif not token:
+                logger.info(f"no access token found for user '{user.email}'")
+            else:
+                logger.debug(f"access token for user '{user.email}' is valid")
 
         response = self.get_response(request)
 
