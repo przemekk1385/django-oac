@@ -7,12 +7,14 @@ import jwt
 import pendulum
 import requests
 from django.conf import settings
-from django.contrib.auth.backends import UserModel
+from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils import timezone
 
 from .apps import DjangoOACConfig
 from .exceptions import InsufficientPayloadError, MissingKtyError, ProviderResponseError
+
+UserModel = get_user_model()
 
 logger = getLogger(DjangoOACConfig.name)
 get_missing_keys: Callable[

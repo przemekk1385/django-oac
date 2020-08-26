@@ -3,12 +3,15 @@ from urllib.parse import parse_qsl, urlparse
 
 import pendulum
 from django.conf import settings
-from django.contrib.auth.backends import BaseBackend, UserModel
+from django.contrib.auth import get_user_model
+from django.contrib.auth.backends import BaseBackend
 from django.core.handlers.wsgi import WSGIRequest
 from django.utils import timezone
 
 from .exceptions import ExpiredStateError, MismatchingStateError, ProviderRequestError
 from .models import Token, User
+
+UserModel = get_user_model()
 
 
 class OAuthClientBackend(BaseBackend):
