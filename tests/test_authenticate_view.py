@@ -1,16 +1,27 @@
-from unittest.mock import patch
-
-import pytest
 from django.shortcuts import reverse
 
+from django_oac.views import authenticate_view
 
-@pytest.mark.django_db
-@patch("django_oac.views.settings.OAC")
-def test_authenticate_view(
-    mock_settings, client,
+
+def test_authenticate_view_failure(
+    settings, rf,
 ):
-    mock_settings.get.return_value = None
+    settings.OAC = {}
+    request = rf.get(reverse("django_oac:authenticate"))
+    request.session = {}
 
-    response = client.get(reverse("django_oac:authenticate"))
+    response = authenticate_view(request)
 
     assert 500 == response.status_code
+
+
+def test_authenticate_view_succeeded(
+    settings, rf,
+):
+    settings.OAC = {"authorize_uri": "https://www.example.com/"}
+    request = rf.get(reverse("django_oac:authenticate"))
+    request.session = {}
+
+    response = authenticate_view(request)
+
+    assert 302 == response.status_code

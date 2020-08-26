@@ -1,79 +1,117 @@
-from unittest.mock import patch
+import logging
+from unittest.mock import Mock, PropertyMock, patch
+
+from django.contrib.auth.models import AnonymousUser
 
 from django_oac.apps import DjangoOACConfig
 from django_oac.exceptions import ProviderResponseError
 from django_oac.middleware import OAuthClientMiddleware
 
-from .helpers import (
-    make_mock_related_manager,
-    make_mock_request,
-    make_mock_token,
-    make_mock_user,
-)
+
+def test_not_is_authenticated_user(rf, caplog, oac_mock_get_response):
+    request = rf.get("foo")
+    request.session = {
+        "OAC_CLIENT_IP": "127.0.0.1",
+        "OAC_STATE_STR": "test",
+    }
+    request.user = AnonymousUser()
+
+    caplog.set_level(logging.INFO, logger=DjangoOACConfig.name)
+    middleware = OAuthClientMiddleware(oac_mock_get_response)
+
+    middleware(request)
+
+    assert not caplog.records
 
 
-def test_not_is_authenticated_user(get_response):
-    mock_user = make_mock_user(is_authenticated=False)
-    mock_request = make_mock_request(user=mock_user,)
+def test_user_without_token(rf, caplog, oac_mock_get_response):
+    user = Mock()
+    user.token_set.last.return_value = None
 
-    middleware = OAuthClientMiddleware(get_response)
-    middleware(mock_request)
+    request = rf.get("foo")
+    request.session = {
+        "OAC_CLIENT_IP": "127.0.0.1",
+        "OAC_STATE_STR": "test",
+    }
+    request.user = user
+
+    caplog.set_level(logging.INFO, logger=DjangoOACConfig.name)
+    middleware = OAuthClientMiddleware(oac_mock_get_response)
+
+    middleware(request)
+
+    assert caplog.records[0].msg.startswith("no access token found")
 
 
-def test_user_without_token(get_response):
-    mock_user = make_mock_user(token_set=make_mock_related_manager())
-    mock_request = make_mock_request(user=mock_user,)
+def test_token_not_has_expired(rf, caplog, oac_mock_get_response):
+    token = Mock()
+    type(token).has_expired = PropertyMock(return_value=False)
+    user = Mock()
+    type(user).email = "spam@eggs"
+    user.token_set.last.return_value = token
 
-    middleware = OAuthClientMiddleware(get_response)
-    middleware(mock_request)
+    request = rf.get("foo")
+    request.session = {
+        "OAC_CLIENT_IP": "127.0.0.1",
+        "OAC_STATE_STR": "test",
+    }
+    request.user = user
+
+    caplog.set_level(logging.DEBUG, logger=DjangoOACConfig.name)
+    middleware = OAuthClientMiddleware(oac_mock_get_response)
+
+    middleware(request)
+
+    assert caplog.records[0].msg.endswith("is valid")
 
 
 @patch("django_oac.middleware.logout")
-def test_token_not_has_expired(get_response):
-    mock_token = make_mock_token()
-    mock_user = make_mock_user(token_set=make_mock_related_manager(last=mock_token))
-    mock_request = make_mock_request(user=mock_user,)
+def test_token_has_expired(mock_logout, rf, caplog, oac_mock_get_response):
+    token = Mock()
+    type(token).has_expired = PropertyMock(return_value=True)
+    user = Mock()
+    type(user).email = "spam@eggs"
+    user.token_set.last.return_value = token
 
-    middleware = OAuthClientMiddleware(get_response)
-    middleware(mock_request)
-
-
-@patch("django_oac.middleware.logout")
-def test_token_has_expired(mock_logout, get_response):
-    mock_token = make_mock_token(has_expired=True)
-    mock_user = make_mock_user(
-        email="spam@eggs", token_set=make_mock_related_manager(last=mock_token)
-    )
-    mock_request = make_mock_request(user=mock_user,)
     mock_logout.return_value = None
 
-    middleware = OAuthClientMiddleware(get_response)
-    middleware(mock_request)
+    request = rf.get("foo")
+    request.session = {
+        "OAC_CLIENT_IP": "127.0.0.1",
+        "OAC_STATE_STR": "test",
+    }
+    request.user = user
+
+    caplog.set_level(logging.INFO, logger=DjangoOACConfig.name)
+    middleware = OAuthClientMiddleware(oac_mock_get_response)
+
+    middleware(request)
+
+    assert caplog.records[0].msg.endswith("has expired")
+    assert caplog.records[1].msg.endswith("has been refreshed")
 
 
 @patch("django_oac.middleware.logout")
-def test_token_refresh_failed(mock_logout, caplog, get_response):
-    mock_token = make_mock_token(
-        has_expired=True, refresh=("side_effect", ProviderResponseError("foo"))
-    )
-    mock_user = make_mock_user(
-        email="spam@eggs", token_set=make_mock_related_manager(last=mock_token)
-    )
-    mock_request = make_mock_request(user=mock_user,)
+def test_token_refresh_failed(mock_logout, rf, caplog, oac_mock_get_response):
+    token = Mock()
+    type(token).has_expired = PropertyMock(return_value=True)
+    token.refresh.side_effect = ProviderResponseError("foo")
+    user = Mock()
+    type(user).email = "spam@eggs"
+    user.token_set.last.return_value = token
+
     mock_logout.return_value = None
 
-    middleware = OAuthClientMiddleware(get_response)
-    middleware(mock_request)
+    request = rf.get("foo")
+    request.session = {
+        "OAC_CLIENT_IP": "127.0.0.1",
+        "OAC_STATE_STR": "test",
+    }
+    request.user = user
 
-    assert "raised ProviderResponseError: foo" == getattr(
-        next(
-            (
-                record
-                for record in caplog.records
-                if record.name == DjangoOACConfig.name and record.levelname == "ERROR"
-            ),
-            None,
-        ),
-        "msg",
-        None,
-    )
+    caplog.set_level(logging.ERROR, logger=DjangoOACConfig.name)
+    middleware = OAuthClientMiddleware(oac_mock_get_response)
+
+    middleware(request)
+
+    assert caplog.records[0].msg.startswith("raised ProviderResponseError")
