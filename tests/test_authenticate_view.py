@@ -8,7 +8,7 @@ def test_authenticate_view_failure(
 ):
     settings.OAC = {}
     request = rf.get(reverse("django_oac:authenticate"))
-    request.session = {}
+    request.session = {"OAC_STATE_STR": "test", "OAC_CLIENT_IP": "127.0.0.1"}
 
     response = authenticate_view(request)
 
@@ -20,7 +20,7 @@ def test_authenticate_view_succeeded(
 ):
     settings.OAC = {"authorize_uri": "https://www.example.com/"}
     request = rf.get(reverse("django_oac:authenticate"))
-    request.session = {}
+    request.session = {"OAC_STATE_STR": "test", "OAC_CLIENT_IP": "127.0.0.1"}
 
     response = authenticate_view(request)
 

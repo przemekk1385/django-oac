@@ -11,8 +11,8 @@ from django_oac.middleware import OAuthClientMiddleware
 def test_not_is_authenticated_user(rf, caplog, oac_mock_get_response):
     request = rf.get("foo")
     request.session = {
-        "OAC_CLIENT_IP": "127.0.0.1",
         "OAC_STATE_STR": "test",
+        "OAC_CLIENT_IP": "127.0.0.1",
     }
     request.user = AnonymousUser()
 
@@ -26,12 +26,13 @@ def test_not_is_authenticated_user(rf, caplog, oac_mock_get_response):
 
 def test_user_without_token(rf, caplog, oac_mock_get_response):
     user = Mock()
+    type(user).email = PropertyMock(return_value="spam@eggs")
     user.token_set.last.return_value = None
 
     request = rf.get("foo")
     request.session = {
-        "OAC_CLIENT_IP": "127.0.0.1",
         "OAC_STATE_STR": "test",
+        "OAC_CLIENT_IP": "127.0.0.1",
     }
     request.user = user
 
@@ -52,8 +53,8 @@ def test_token_not_has_expired(rf, caplog, oac_mock_get_response):
 
     request = rf.get("foo")
     request.session = {
-        "OAC_CLIENT_IP": "127.0.0.1",
         "OAC_STATE_STR": "test",
+        "OAC_CLIENT_IP": "127.0.0.1",
     }
     request.user = user
 
@@ -77,8 +78,8 @@ def test_token_has_expired(mock_logout, rf, caplog, oac_mock_get_response):
 
     request = rf.get("foo")
     request.session = {
-        "OAC_CLIENT_IP": "127.0.0.1",
         "OAC_STATE_STR": "test",
+        "OAC_CLIENT_IP": "127.0.0.1",
     }
     request.user = user
 
@@ -104,8 +105,8 @@ def test_token_refresh_failed(mock_logout, rf, caplog, oac_mock_get_response):
 
     request = rf.get("foo")
     request.session = {
-        "OAC_CLIENT_IP": "127.0.0.1",
         "OAC_STATE_STR": "test",
+        "OAC_CLIENT_IP": "127.0.0.1",
     }
     request.user = user
 

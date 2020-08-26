@@ -16,12 +16,13 @@ def test_logout_view_failure(mock_logout, exception, expected_message, rf):
     token = Mock()
     token.revoke.side_effect = exception("foo")
     user = Mock()
+    type(user).email = "spam@eggs"
     user.token_set.last.return_value = token
 
     mock_logout.return_value = None
 
     request = rf.get(reverse("django_oac:logout"))
-    request.session = {}
+    request.session = {"OAC_STATE_STR": "test", "OAC_CLIENT_IP": "127.0.0.1"}
     request.user = user
 
     response = logout_view(request)
@@ -30,14 +31,15 @@ def test_logout_view_failure(mock_logout, exception, expected_message, rf):
 
 
 @patch("django_oac.views.logout")
-def test_authenticate_view_succeeded(mock_logout, rf):
+def test_logout_view_succeeded(mock_logout, rf):
     user = Mock()
+    type(user).email = "spam@eggs"
     user.token_set.last.return_value = Mock()
 
     mock_logout.return_value = None
 
     request = rf.get(reverse("django_oac:logout"))
-    request.session = {}
+    request.session = {"OAC_STATE_STR": "test", "OAC_CLIENT_IP": "127.0.0.1"}
     request.user = user
 
     response = logout_view(request)

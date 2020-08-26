@@ -1,5 +1,5 @@
 import logging
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, PropertyMock, patch
 
 import pytest
 from django.shortcuts import reverse
@@ -51,7 +51,7 @@ def test_callback_view_failure_other_exceptions(
     mock_authenticate.side_effect = exception(message)
 
     request = rf.get(reverse("django_oac:callback"))
-    request.session = {}
+    request.session = {"OAC_STATE_STR": "test", "OAC_CLIENT_IP": "127.0.0.1"}
 
     caplog.set_level(logging.ERROR, logger=DjangoOACConfig.name)
 
@@ -64,11 +64,14 @@ def test_callback_view_failure_other_exceptions(
 @patch("django_oac.views.login")
 @patch("django_oac.views.authenticate")
 def test_callback_view_user_authenticated(mock_authenticate, mock_login, rf):
-    mock_authenticate.return_value = Mock()
+    user = Mock()
+    type(user).email = PropertyMock(return_value="spam@eggs")
+
+    mock_authenticate.return_value = user
     mock_login.return_value = None
 
     request = rf.get(reverse("django_oac:callback"))
-    request.session = {}
+    request.session = {"OAC_STATE_STR": "test", "OAC_CLIENT_IP": "127.0.0.1"}
 
     response = callback_view(request)
 
@@ -80,7 +83,7 @@ def test_callback_view_user_not_authenticated(mock_authenticate, rf):
     mock_authenticate.return_value = None
 
     request = rf.get(reverse("django_oac:callback"))
-    request.session = {}
+    request.session = {"OAC_STATE_STR": "test", "OAC_CLIENT_IP": "127.0.0.1"}
 
     response = callback_view(request)
 

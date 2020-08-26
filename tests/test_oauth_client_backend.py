@@ -42,9 +42,9 @@ def test_authenticate_failure(mock__parse_request_uri, rf):
         reverse("django_oac:authenticate"), {"code": "foo", "state": "test"}
     )
     request.session = {
-        "OAC_CLIENT_IP": "127.0.0.1",
         "OAC_STATE_STR": "test",
         "OAC_STATE_TIMESTAMP": timezone.now().timestamp() - 301,
+        "OAC_CLIENT_IP": "127.0.0.1",
     }
     backend = OAuthClientBackend()
 
@@ -69,9 +69,9 @@ def test_authenticate_succeeded(
         reverse("django_oac:authenticate"), {"code": "foo", "state": "test"}
     )
     request.session = {
-        "OAC_CLIENT_IP": "127.0.0.1",
         "OAC_STATE_STR": "test",
         "OAC_STATE_TIMESTAMP": timezone.now().timestamp(),
+        "OAC_CLIENT_IP": "127.0.0.1",
     }
     backend = OAuthClientBackend()
 
