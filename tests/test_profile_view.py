@@ -1,5 +1,4 @@
 import json
-
 from unittest.mock import Mock, patch
 
 from django.shortcuts import reverse
@@ -26,5 +25,5 @@ def test_profile_view(rf):
         "first_name": "spam",
         "last_name": "eggs",
         "email": "spam@eggs",
-        "username": ""
+        "username": "",
     } == json.loads(response.content)

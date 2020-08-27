@@ -46,14 +46,10 @@ def test_get_user_does_not_exist():
 @pytest.mark.django_db
 def test_get_user_succeeded():
     user = UserModel.objects.create(
-        first_name="spam",
-        last_name="eggs",
-        email="spam@eggs",
-        username=uuid4().hex
+        first_name="spam", last_name="eggs", email="spam@eggs", username=uuid4().hex
     )
 
     assert OAuthClientBackend.get_user(user.id)
-
 
 
 @patch("django_oac.backends.OAuthClientBackend._parse_request_uri")
