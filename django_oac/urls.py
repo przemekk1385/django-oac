@@ -7,5 +7,5 @@ urlpatterns = [
     re_path(r"^authenticate/$", views.authenticate_view, name="authenticate"),
     re_path(r"^callback/$", views.callback_view, name="callback"),
     re_path(r"^logout/$", views.logout_view, name="logout"),
-    re_path(r"^test/$", views.test_view, name="test"),
+    re_path(r"^profile/$", views.profile_view, name="profile"),
 ]

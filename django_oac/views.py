@@ -112,7 +112,7 @@ def callback_view(request: WSGIRequest) -> HttpResponse:
         if user:
             logger.info(f"user '{user.email}' authenticated")
             login(request, user, backend="django_oac.backends.OAuthClientBackend")
-            ret = redirect("django_oac:test")
+            ret = redirect("django_oac:profile")
         else:
             ret = render(request, "error.html", {"message": "Forbidden."}, status=403)
 
@@ -136,7 +136,7 @@ def logout_view(request: WSGIRequest) -> HttpResponse:
 
     token = request.user.token_set.last()
 
-    ret = redirect("django_oac:test")
+    ret = redirect("django_oac:profile")
     if token:
         try:
             token.revoke()
@@ -168,7 +168,7 @@ def logout_view(request: WSGIRequest) -> HttpResponse:
     return ret
 
 
-def test_view(request: WSGIRequest) -> JsonResponse:
+def profile_view(request: WSGIRequest) -> JsonResponse:
     return JsonResponse(
         {
             field: getattr(request.user, field, "")
