@@ -1,3 +1,4 @@
+from json.decoder import JSONDecodeError
 from logging import LoggerAdapter, getLogger
 from uuid import uuid4
 
@@ -10,6 +11,7 @@ from django.urls import reverse
 from django.utils import timezone
 from ipware import get_client_ip
 from jwt.exceptions import PyJWTError
+from requests.exceptions import RequestException
 
 from .apps import DjangoOACConfig
 from .exceptions import (
@@ -76,7 +78,7 @@ def callback_view(request: WSGIRequest) -> HttpResponse:
     try:
         user = authenticate(request)
     except ProviderRequestError as e:
-        logger.error(f"raised ProviderRequestError: {e}")
+        logger.error(f"raised django_oac.exceptions.ProviderRequestError: {e}")
         ret = render(request, "error.html", {"message": "Bad request."}, status=400,)
     except ExpiredStateError:
         logger.info(f"state expired")
@@ -97,8 +99,15 @@ def callback_view(request: WSGIRequest) -> HttpResponse:
             {"message": "App config is incomplete, cannot continue."},
             status=500,
         )
-    except (OACError, PyJWTError) as e:
-        logger.error(f"raised {e.__class__.__name__}: {e}")
+    except (
+        JSONDecodeError,
+        OACError,
+        PyJWTError,
+        RequestException,
+        TypeError,
+        ValueError,
+    ) as e:
+        logger.error(f"raised {e.__class__.__module__}.{e.__class__.__name__}: {e}")
         ret = render(
             request,
             "error.html",
@@ -146,7 +155,7 @@ def logout_view(request: WSGIRequest) -> HttpResponse:
                 status=500,
             )
         except ProviderResponseError as e:
-            logger.error(f"raised ProviderResponseError: {e}")
+            logger.error(f"raised django_oac.exceptions.ProviderResponseError: {e}")
             ret = render(
                 request,
                 "error.html",

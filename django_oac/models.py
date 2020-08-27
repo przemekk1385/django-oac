@@ -210,7 +210,7 @@ class UserRemoteManager:
                 first_name=payload["first_name"],
                 last_name=payload["last_name"],
                 email=payload["email"],
-                username=uuid4().hex,
+                username=payload.get("username", uuid4().hex),
             )
         else:
             logger.info(
