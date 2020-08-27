@@ -45,10 +45,25 @@ def test_callback_view_failure_expired_state_error(
 @pytest.mark.parametrize(
     "exception,message,expected_message,expected_status_code",
     [
-        (ProviderRequestError, "foo", "raised ProviderRequestError: foo", 400),
+        (
+            ProviderRequestError,
+            "foo",
+            "raised django_oac.exceptions.ProviderRequestError",
+            400,
+        ),
         (KeyError, "baz", "configuration error, missing 'baz'", 500),
-        (ProviderResponseError, "spam", "raised ProviderResponseError: spam", 500),
-        (ExpiredSignatureError, "eggs", "raised ExpiredSignatureError: eggs", 500),
+        (
+            ProviderResponseError,
+            "spam",
+            "raised django_oac.exceptions.ProviderResponseError",
+            500,
+        ),
+        (
+            ExpiredSignatureError,
+            "eggs",
+            "raised jwt.exceptions.ExpiredSignatureError",
+            500,
+        ),
     ],
 )
 @patch("django_oac.views.authenticate")
@@ -72,7 +87,7 @@ def test_callback_view_failure_other_exceptions(
     response = callback_view(request)
 
     assert expected_status_code == response.status_code
-    assert expected_message == caplog.records[0].msg
+    assert caplog.records[0].msg.startswith(expected_message)
 
 
 @patch("django_oac.views.login")
