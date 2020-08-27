@@ -22,7 +22,7 @@ class DjangoOACConfig(AppConfig):
         fh.setFormatter(
             logging.Formatter(
                 "%(asctime)s"
-                " - %(name)s"
+                # " - %(name)s"
                 " - %(scope)s"
                 " - %(ip_state)s"
                 " - %(levelname)s"
