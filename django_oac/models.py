@@ -79,9 +79,11 @@ class Token(models.Model):
 
     access_token = models.TextField()
     refresh_token = models.TextField()
-    expires_in = models.PositiveIntegerField()
-    user = models.ForeignKey(UserModel, blank=True, null=True, on_delete=models.CASCADE)
-    issued = models.DateTimeField()
+    expires_in = models.PositiveIntegerField(editable=False)
+    user = models.ForeignKey(
+        UserModel, blank=True, editable=False, null=True, on_delete=models.CASCADE
+    )
+    issued = models.DateTimeField(editable=False)
 
     remote = TokenRemoteManager()
 
@@ -185,7 +187,9 @@ class UserRemoteManager:
             algorithms=["RS256"],
         )
 
-        missing = _get_missing_keys({"first_name", "last_name", "email"}, payload.keys())
+        missing = _get_missing_keys(
+            {"first_name", "last_name", "email"}, payload.keys()
+        )
         if missing:
             raise InsufficientPayloadError(
                 f"payload is missing required data: {missing}"

@@ -1,5 +1,8 @@
-from django.contrib.admin import site
+from django.contrib import admin
 
 from .models import Token
 
-site.register(Token)
+
+@admin.register(Token)
+class TokenAdmin(admin.ModelAdmin):
+    readonly_fields = ("expires_in", "issued", "user")
