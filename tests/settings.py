@@ -49,6 +49,12 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django_oac.middleware.OAuthClientMiddleware",
+]
+
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "django_oac.backends.OAuthClientBackend",
 ]
 
 ROOT_URLCONF = "project.urls"
@@ -127,5 +133,4 @@ OAC = {
     "revoke_uri": "",
     "redirect_uri": "",
     "jwks_uri": "",
-    "client_id": "foo-bar-baz",
 }
