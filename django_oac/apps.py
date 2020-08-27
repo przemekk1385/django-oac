@@ -1,4 +1,5 @@
 import logging
+from logging import getLogger
 from logging.handlers import RotatingFileHandler
 
 from django.apps import AppConfig
@@ -15,7 +16,7 @@ class DjangoOACConfig(AppConfig):
         log_dir = settings.BASE_DIR / "log"
         if not log_dir.is_dir():
             log_dir.mkdir(parents=True)
-        logger = logging.getLogger(self.name)
+        logger = getLogger(self.name)
         fh = RotatingFileHandler(
             log_dir / f"{self.name}.log", maxBytes=(5 * 1024 ** 2),
         )
