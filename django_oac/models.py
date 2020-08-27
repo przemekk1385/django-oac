@@ -1,6 +1,6 @@
 import json
 from logging import getLogger
-from typing import Callable, Tuple, Union
+from typing import Tuple, Union
 from uuid import uuid4
 
 import jwt
@@ -15,13 +15,13 @@ from .apps import DjangoOACConfig
 from .exceptions import InsufficientPayloadError, MissingKtyError, ProviderResponseError
 
 UserModel = get_user_model()
-
 logger = getLogger(DjangoOACConfig.name)
-get_missing_keys: Callable[
-    [set, Union[list, set, tuple]], str
-] = lambda required, given: ", ".join(
-    reversed(list(map(lambda key: f"'{key}'", required.difference(given))))
-)
+
+
+def _get_missing_keys(required: set, given: Union[list, set, tuple]) -> str:
+    return ", ".join(
+        reversed(list(map(lambda key: f"'{key}'", required.difference(given))))
+    )
 
 
 class TokenRemoteManager:
@@ -52,7 +52,7 @@ class TokenRemoteManager:
 
         json_dict = response.json()
 
-        missing = get_missing_keys(
+        missing = _get_missing_keys(
             {"access_token", "refresh_token", "expires_in", "id_token"},
             json_dict.keys(),
         )
@@ -185,7 +185,7 @@ class UserRemoteManager:
             algorithms=["RS256"],
         )
 
-        missing = get_missing_keys({"first_name", "last_name", "email"}, payload.keys())
+        missing = _get_missing_keys({"first_name", "last_name", "email"}, payload.keys())
         if missing:
             raise InsufficientPayloadError(
                 f"payload is missing required data: {missing}"
