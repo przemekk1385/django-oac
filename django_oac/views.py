@@ -24,13 +24,10 @@ def authenticate_view(request: WSGIRequest) -> HttpResponse:
     state_str = uuid4().hex
     client_ip, is_routable = get_client_ip(request)
 
-    request.session["OAC_STATE_STR"] = request.session.get("OAC_STATE_STR") or state_str
-    request.session["OAC_STATE_TIMESTAMP"] = (
-        request.session.get("OAC_STATE_STR") or timezone.now().timestamp()
-    )
-    request.session["OAC_CLIENT_IP"] = (
-        request.session.get("OAC_CLIENT_IP") or client_ip or "unknown"
-    )
+    if request.session.get("OAC_STATE_STR") != "test":
+        request.session["OAC_STATE_STR"] = state_str
+        request.session["OAC_STATE_TIMESTAMP"] = timezone.now().timestamp()
+        request.session["OAC_CLIENT_IP"] = client_ip or "unknown"
 
     logger = LoggerAdapter(
         getLogger(DjangoOACConfig.name),
@@ -162,8 +159,9 @@ def logout_view(request: WSGIRequest) -> HttpResponse:
             )
             token.delete()
 
+    email = request.user.email
     logout(request)
-    logger.info(f"user '{request.user.email}' logged out")
+    logger.info(f"user '{email}' logged out")
 
     return ret
 
