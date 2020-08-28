@@ -10,7 +10,31 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
+import os
 from pathlib import Path
+from typing import Callable
+
+from django.core.exceptions import ImproperlyConfigured
+from dotenv import find_dotenv, load_dotenv
+
+load_dotenv(find_dotenv())
+
+
+def _bool(value):
+    if value not in ("0", "1", "False", "True", "false", "true"):
+        raise ValueError(f"cannot map {value} to bool")
+    return True if value in ("1", "True", "true") else False
+
+
+def load_env_var(name, map_to: Callable = str):
+    var = os.environ.get(name)
+    if var:
+        try:
+            return map_to(var)
+        except ValueError:
+            raise ImproperlyConfigured(f"cannot map {var} to {map_to}")
+    raise ImproperlyConfigured(f"undefined required variable '{name}'")
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
@@ -20,12 +44,12 @@ BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "7f-&w2famhqxvo_fc@8l#-+%^cz6o_f0j1he))af2ke!gp!ir7"
+SECRET_KEY = load_env_var("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = load_env_var("DEBUG", _bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -38,6 +62,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "sslserver",
     "django_oac",
 ]
 
@@ -49,6 +74,12 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django_oac.middleware.OAuthClientMiddleware",
+]
+
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "django_oac.backends.OAuthClientBackend",
 ]
 
 ROOT_URLCONF = "project.urls"
@@ -88,7 +119,9 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "NAME": (
+            "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+        ),
     },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",},
@@ -114,3 +147,18 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = "/static/"
+
+
+# OAuth Client settings
+# https://github.com/przemekk1385/django_oac
+
+OAC = {
+    "authorize_uri": "https://your.oauth.provider/authorize/",
+    "token_uri": "https://your.oauth.provider/token/",
+    "revoke_uri": "https://your.oauth.provider/revoke/",
+    "redirect_uri": "http://your.site/oac/callback/",
+    "jwks_uri": "https://your.oauth.provider/jwks/",
+    "client_id": load_env_var("OAC_CLIENT_ID"),
+    "client_secret": load_env_var("OAC_CLIENT_SECRET"),
+    # "scope": "openid",
+}
