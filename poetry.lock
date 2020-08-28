@@ -173,17 +173,6 @@ Django = ">=1.8"
 
 [[package]]
 category = "main"
-description = "Web APIs for Django, made easy."
-name = "djangorestframework"
-optional = false
-python-versions = ">=3.5"
-version = "3.11.1"
-
-[package.dependencies]
-django = ">=1.11"
-
-[[package]]
-category = "main"
 description = "Internationalized Domain Names in Applications (IDNA)"
 name = "idna"
 optional = false
@@ -494,7 +483,7 @@ python-versions = "*"
 version = "0.2.5"
 
 [metadata]
-content-hash = "16af2f53945c9d4915cf0d5cf626c7560956a18fdf61c7313aa933b308383e66"
+content-hash = "58368979dcdd760ad7e03113271882be042e40f578ed2816fb8a278c7f747553"
 python-versions = "^3.8"
 
 [metadata.files]
@@ -630,10 +619,6 @@ django-ipware = [
 ]
 django-sslserver = [
     {file = "django_sslserver-0.22-py3-none-any.whl", hash = "sha256:c598a363d2ccdc2421c08ddb3d8b0973f80e8e47a3a5b74e4a2896f21c2947c5"},
-]
-djangorestframework = [
-    {file = "djangorestframework-3.11.1-py3-none-any.whl", hash = "sha256:8b1ac62c581dbc5799b03e535854b92fc4053ecfe74bad3f9c05782063d4196b"},
-    {file = "djangorestframework-3.11.1.tar.gz", hash = "sha256:6dd02d5a4bd2516fb93f80360673bf540c3b6641fec8766b1da2870a5aa00b32"},
 ]
 idna = [
     {file = "idna-2.10-py2.py3-none-any.whl", hash = "sha256:b97d804b1e9b523befed77c48dacec60e6dcb0b5391d57af6a65a312a90648c0"},
