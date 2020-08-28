@@ -4,11 +4,13 @@ from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.utils import timezone
+from django.views.decorators.http import require_GET
 from ipware import get_client_ip
 from jwt.exceptions import PyJWTError
 from requests.exceptions import RequestException
@@ -22,6 +24,7 @@ from .exceptions import (
 )
 
 
+@require_GET
 def authenticate_view(request: WSGIRequest) -> HttpResponse:
     state_str = uuid4().hex
     client_ip, is_routable = get_client_ip(request)
@@ -62,6 +65,7 @@ def authenticate_view(request: WSGIRequest) -> HttpResponse:
         )
 
 
+@require_GET
 def callback_view(request: WSGIRequest) -> HttpResponse:
     logger = LoggerAdapter(
         getLogger(DjangoOACConfig.name),
@@ -127,6 +131,8 @@ def callback_view(request: WSGIRequest) -> HttpResponse:
     return ret
 
 
+@login_required(login_url=reverse_lazy("django_oac:authenticate"))
+@require_GET
 def logout_view(request: WSGIRequest) -> HttpResponse:
     logger = LoggerAdapter(
         getLogger(DjangoOACConfig.name),
@@ -175,6 +181,7 @@ def logout_view(request: WSGIRequest) -> HttpResponse:
     return ret
 
 
+@require_GET
 def profile_view(request: WSGIRequest) -> JsonResponse:
     return JsonResponse(
         {
