@@ -1,14 +1,17 @@
 import json
 from unittest.mock import Mock, PropertyMock, patch
-from urllib.parse import parse_qsl, urlparse
+from uuid import uuid4
 
 import pytest
 from django.shortcuts import reverse
+from django.utils import timezone
 
 
 @pytest.mark.django_db
 @patch("django_oac.models.requests")
-def test_authentication_succeeded(mock_requests, settings, client, oac_jwk):
+def test_callback_endpoint(mock_requests, settings, client, oac_jwk):
+    state_str = uuid4().hex
+
     settings.OAC = {
         "authorize_uri": "http://www.example.com/",
         "token_uri": "http://www.example.com/",
@@ -17,11 +20,11 @@ def test_authentication_succeeded(mock_requests, settings, client, oac_jwk):
         "client_id": "foo-bar-baz",
     }
 
-    response = client.get(reverse("django_oac:authenticate"))
-
-    assert 302 == response.status_code
-
-    query_dict = dict(parse_qsl(urlparse(response.url).query))
+    session = client.session
+    session["OAC_STATE_STR"] = state_str
+    session["OAC_STATE_TIMESTAMP"] = timezone.now().timestamp() - 240
+    session["OAC_CLIENT_IP"] = "127.0.0.1"
+    session.save()
 
     oac_jwk.kid = "foo"
     oac_jwk.id_token = {
@@ -52,7 +55,7 @@ def test_authentication_succeeded(mock_requests, settings, client, oac_jwk):
 
     response = client.get(
         reverse("django_oac:callback"),
-        {"state": query_dict["state"], "code": "foo"},
+        {"state": state_str, "code": "foo"},
         follow=True,
     )
 
@@ -62,14 +65,4 @@ def test_authentication_succeeded(mock_requests, settings, client, oac_jwk):
         "last_name": "eggs",
         "email": "spam@eggs",
         "username": "spam.eggs",
-    } == json.loads(response.content)
-
-    response = client.get(reverse("django_oac:logout"), follow=True)
-
-    assert 200 == response.status_code
-    assert {
-        "first_name": "",
-        "last_name": "",
-        "email": "",
-        "username": "",
     } == json.loads(response.content)
