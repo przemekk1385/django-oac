@@ -1,12 +1,11 @@
 import json
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 from django.shortcuts import reverse
 
 from django_oac.views import profile_view
 
 
-@patch("django_oac.views.logout")
 def test_profile_view(rf):
     user = Mock()
     type(user).first_name = "spam"
