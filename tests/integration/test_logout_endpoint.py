@@ -20,10 +20,7 @@ def test_authentication_endpoint(settings, client, oac_jwk):
     }
 
     user = UserModel.objects.create(
-        first_name="spam",
-        last_name="eggs",
-        email="spam@eggs",
-        username="spam.eggs"
+        first_name="spam", last_name="eggs", email="spam@eggs", username="spam.eggs"
     )
     client.force_login(user, backend="django_oac.backends.OAuthClientBackend")
 
