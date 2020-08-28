@@ -37,7 +37,7 @@ class Migration(migrations.Migration):
                 "abstract": False,
             },
             bases=("auth.user",),
-            managers=[("objects", django.contrib.auth.models.UserManager()),],
+            managers=[("objects", django.contrib.auth.models.UserManager())],
         ),
         migrations.CreateModel(
             name="Token",

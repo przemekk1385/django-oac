@@ -85,7 +85,7 @@ def callback_view(request: WSGIRequest) -> HttpResponse:
         logger.error(f"raised django_oac.exceptions.ProviderRequestError: {e}")
         ret = render(request, "error.html", {"message": "Bad request."}, status=400,)
     except ExpiredStateError:
-        logger.info(f"state expired")
+        logger.info("state expired")
         ret = render(
             request,
             "error.html",

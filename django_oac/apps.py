@@ -11,7 +11,7 @@ class DjangoOACConfig(AppConfig):
     verbose_name = "Django OAuth Client"
 
     def ready(self):
-        from . import checks  # isort:skip
+        from . import checks  # noqa: F401 isort:skip
 
         log_dir = settings.BASE_DIR / "log"
         if not log_dir.is_dir():

@@ -62,7 +62,7 @@ def test_get_from_id_token_expired_signature_error(mock_requests, settings, oac_
 
 @pytest.mark.parametrize(
     "jwk,expected_exception",
-    [({"kty": "RSA", "kid": "foo"}, PyJWTError), ({"kid": "foo"}, MissingKtyError),],
+    [({"kty": "RSA", "kid": "foo"}, PyJWTError), ({"kid": "foo"}, MissingKtyError)],
 )
 @patch("django_oac.models.requests")
 def test_get_from_id_token_incorrect_jwk(
