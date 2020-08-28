@@ -3,7 +3,6 @@ cryptography==3.0
 Django==3.1
 django-ipware==3.0.1
 django-sslserver==0.22
-djangorestframework==3.11.1
 isort==5.4.2
 jwcrypto==0.7
 pendulum==2.1.2
