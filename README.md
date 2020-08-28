@@ -6,11 +6,13 @@ Pretty simple OAuth Client for Django.
 
 ## Installation
 
-Cooming soon...
+Coming soon...
 
 ## Configuration
 
-Settings are being kept in `OAC` dict in your project's `settings.py` file. Sample configuration below:
+Configuration is being kept in `OAC` dict in your project's settings.
+
+`settings.py`
 
     OAC = {
         "authorize_uri": "https://your.oauth.provider/authorize/",
@@ -22,4 +24,40 @@ Settings are being kept in `OAC` dict in your project's `settings.py` file. Samp
         "client_secret": "your_client_secret",
     }
 
-All keys **are required**.
+Besides that some additions must be made in the **Application definition** section.
+
+`settings.py`
+
+    # Application definition
+    
+    INSTALLED_APPS = [
+        # other apps
+        # ...
+        "django_oac",
+    ]
+
+    MIDDLEWARE = [
+        # other middleware
+        # ...
+        "django_oac.middleware.OAuthClientMiddleware",
+    ]
+
+    AUTHENTICATION_BACKENDS = [
+        "django.contrib.auth.backends.ModelBackend",  # default authentcation backend
+        "django_oac.backends.OAuthClientBackend",  # Django OAuth Client authentication backend
+    ]
+
+And in project's urls.
+
+`urls.py`
+
+    # ...
+    from django.urls import include, path
+    
+    urlpatterns = [
+        # other urls
+        # ...
+        path("some_prefix/", include("django_oac.urls")),
+    ]
+    
+That's it - your are good to go.
