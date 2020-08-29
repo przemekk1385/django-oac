@@ -223,6 +223,6 @@ class UserRemoteManager:
         return user
 
 
-class User(UserModel):
+class User:
 
     remote = UserRemoteManager()
