@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/przemekk1385/django_oac.svg?branch=master)](https://travis-ci.org/przemekk1385/django_oac) [![Coverage Status](https://coveralls.io/repos/github/przemekk1385/django_oac/badge.svg)](https://coveralls.io/github/przemekk1385/django_oac) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Build Status](https://travis-ci.org/przemekk1385/django_oac.svg?branch=master)](https://travis-ci.org/przemekk1385/django_oac) [![Coverage Status](https://coveralls.io/repos/github/przemekk1385/django_oac/badge.svg)](https://coveralls.io/github/przemekk1385/django_oac) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) ![supported Python versions](https://raw.githubusercontent.com/przemekk1385/przemekk1385.github.io/master/django_oac/python_versions.svg) ![supported Django versions](https://raw.githubusercontent.com/przemekk1385/przemekk1385.github.io/master/django_oac/django_versions.svg)
 
 # Django OAuth Client
 
