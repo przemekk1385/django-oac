@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 import os
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Union
 
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import find_dotenv, load_dotenv
@@ -26,13 +26,15 @@ def _bool(value):
     return True if value in ("1", "True", "true") else False
 
 
-def load_env_var(name, map_to: Callable = str):
+def load_env_var(name, map_to: Callable = str, default: Union[bool, str] = None):
     var = os.environ.get(name)
     if var:
         try:
             return map_to(var)
         except ValueError:
             raise ImproperlyConfigured(f"cannot map {var} to {map_to}")
+    elif default is not None:
+        return default
     raise ImproperlyConfigured(f"undefined required variable '{name}'")
 
 
@@ -47,7 +49,7 @@ BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 SECRET_KEY = load_env_var("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = load_env_var("DEBUG", _bool)
+DEBUG = load_env_var("DEBUG", _bool, default=False)
 
 ALLOWED_HOSTS = ["*"]
 
