@@ -67,3 +67,4 @@ def settings_oac_uris_check(app_configs, **kwargs):
 
 # TODO:
 #  check environmental variables 'client_id', 'client_secret'
+#  check middleware and authentication backend
