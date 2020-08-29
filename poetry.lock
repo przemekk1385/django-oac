@@ -104,7 +104,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 version = "0.4.3"
 
 [[package]]
-category = "main"
+category = "dev"
 description = "Code coverage measurement for Python"
 name = "coverage"
 optional = false
@@ -376,7 +376,7 @@ docs = ["sphinx", "sphinx-rtd-theme"]
 testing = ["django", "django-configurations (>=2.0)", "six"]
 
 [[package]]
-category = "main"
+category = "dev"
 description = "Python interface to coveralls.io API\n"
 name = "python-coveralls"
 optional = false
@@ -428,7 +428,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "2020.1"
 
 [[package]]
-category = "main"
+category = "dev"
 description = "YAML parser and emitter for Python"
 name = "pyyaml"
 optional = false
@@ -515,7 +515,7 @@ python-versions = "*"
 version = "0.2.5"
 
 [metadata]
-content-hash = "04810f84df4f0f8f0fff5fdcef69e3bc4a6aabc6296f8967a7523db86db600f1"
+content-hash = "a29c640c973d003dc8022d817a1aa63a6224741ed422e0a3fc5adaf53692f838"
 python-versions = "^3.8"
 
 [metadata.files]

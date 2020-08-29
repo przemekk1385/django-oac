@@ -12,7 +12,6 @@ pendulum = "^2.1.2"
 pyjwt = "^1.7.1"
 cryptography = "^3.0"
 django-ipware = "^3.0.1"
-python-coveralls = "^2.9.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
