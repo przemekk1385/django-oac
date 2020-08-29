@@ -4,7 +4,6 @@ from urllib.parse import parse_qsl, urlparse
 import pendulum
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.auth.backends import BaseBackend
 from django.core.handlers.wsgi import WSGIRequest
 from django.utils import timezone
 
@@ -14,7 +13,7 @@ from .models import Token, User
 UserModel = get_user_model()
 
 
-class OAuthClientBackend(BaseBackend):
+class OAuthClientBackend:
     @staticmethod
     def _parse_request_uri(request_uri: str, state_str: str):
         query_dict = dict(parse_qsl(urlparse(request_uri).query))
