@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.1] - 2020-08-29
+## [0.1.1] - 2020-08-30
 
 ### Added
 
@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * defining default value for environment variables in project settings
 * changelog
 * sample minimal version of .env file
+
+### Fixed
+
+* removed unnecessary inheritance from UserModel
+
 
 ## [0.1.0] - 2020-08-28
 
