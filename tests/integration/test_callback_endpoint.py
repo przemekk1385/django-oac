@@ -46,9 +46,9 @@ def test_callback_endpoint(mock_requests, settings, client, oac_jwk):
 
     mock_get_response = Mock()
     type(mock_get_response).status_code = PropertyMock(return_value=200)
-    mock_get_response.json.return_value = {
-        "keys": [oac_jwk.jwk],
-    }
+    type(mock_get_response).content = PropertyMock(
+        return_value=json.dumps({"keys": [oac_jwk.jwk]})
+    )
 
     mock_requests.post.return_value = mock_post_response
     mock_requests.get.return_value = mock_get_response

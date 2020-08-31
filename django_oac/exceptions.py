@@ -18,11 +18,6 @@ class MismatchingStateError(OACError):
     pass
 
 
-class MissingKtyError(OACError):
-
-    pass
-
-
 class ProviderRequestError(OACError):
 
     pass

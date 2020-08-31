@@ -1,3 +1,4 @@
+import json
 from unittest.mock import Mock, PropertyMock, patch
 from uuid import uuid4
 
@@ -5,13 +6,10 @@ import pendulum
 import pytest
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from jwcrypto.common import JWException
 from jwt.exceptions import ExpiredSignatureError, PyJWTError
 
-from django_oac.exceptions import (
-    InsufficientPayloadError,
-    MissingKtyError,
-    ProviderResponseError,
-)
+from django_oac.exceptions import InsufficientPayloadError, ProviderResponseError
 from django_oac.models import Token, User
 
 UserModel = get_user_model()
@@ -52,7 +50,9 @@ def test_get_from_id_token_expired_signature_error(mock_requests, settings, oac_
 
     response = Mock()
     type(response).status_code = PropertyMock(return_value=200)
-    response.json.return_value = {"keys": [oac_jwk.jwk]}
+    type(response).content = PropertyMock(
+        return_value=json.dumps({"keys": [oac_jwk.jwk]})
+    )
 
     mock_requests.get.return_value = response
 
@@ -61,8 +61,7 @@ def test_get_from_id_token_expired_signature_error(mock_requests, settings, oac_
 
 
 @pytest.mark.parametrize(
-    "jwk,expected_exception",
-    [({"kty": "RSA", "kid": "foo"}, PyJWTError), ({"kid": "foo"}, MissingKtyError)],
+    "jwk,expected_exception", [({"foo": "bar"}, JWException), ({}, PyJWTError)],
 )
 @patch("django_oac.models.requests")
 def test_get_from_id_token_incorrect_jwk(
@@ -79,7 +78,7 @@ def test_get_from_id_token_incorrect_jwk(
 
     response = Mock()
     type(response).status_code = PropertyMock(return_value=200)
-    response.json.return_value = {"keys": [jwk]}
+    type(response).content = PropertyMock(return_value=json.dumps({"keys": [jwk]}))
 
     mock_requests.get.return_value = response
 
@@ -104,7 +103,9 @@ def test_get_from_id_token_missing_jwk(mock_requests, settings, oac_jwk):
 
     response = Mock()
     type(response).status_code = PropertyMock(return_value=200)
-    response.json.return_value = {"keys": [oac_jwk.jwk]}
+    type(response).content = PropertyMock(
+        return_value=json.dumps({"keys": [oac_jwk.jwk]})
+    )
 
     mock_requests.get.return_value = response
 
@@ -122,7 +123,7 @@ def test_get_from_id_token_insufficient_payload(mock_requests, mock_jwt):
 
     response = Mock()
     type(response).status_code = PropertyMock(return_value=200)
-    response.json.return_value = {"keys": []}
+    type(response).content = PropertyMock(return_value=json.dumps({"keys": []}))
 
     mock_requests.get.return_value = response
 
@@ -144,7 +145,9 @@ def test_get_from_id_token_create_user(mock_requests, oac_jwk, settings):
 
     response = Mock()
     type(response).status_code = PropertyMock(return_value=200)
-    response.json.return_value = {"keys": [oac_jwk.jwk]}
+    type(response).content = PropertyMock(
+        return_value=json.dumps({"keys": [oac_jwk.jwk]})
+    )
 
     mock_requests.get.return_value = response
 
@@ -181,7 +184,9 @@ def test_get_from_id_token_get_existing_user(mock_requests, settings, oac_jwk):
 
     response = Mock()
     type(response).status_code = PropertyMock(return_value=200)
-    response.json.return_value = {"keys": [oac_jwk.jwk]}
+    type(response).content = PropertyMock(
+        return_value=json.dumps({"keys": [oac_jwk.jwk]})
+    )
 
     mock_requests.get.return_value = response
 

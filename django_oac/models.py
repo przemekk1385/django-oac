@@ -1,4 +1,4 @@
-import json
+from hashlib import sha1
 from logging import getLogger
 from typing import Tuple, Union
 from uuid import uuid4
@@ -8,11 +8,14 @@ import pendulum
 import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.db import models
 from django.utils import timezone
+from jwcrypto.jwk import JWKSet
+from jwt.exceptions import InvalidSignatureError
 
 from .apps import DjangoOACConfig
-from .exceptions import InsufficientPayloadError, MissingKtyError, ProviderResponseError
+from .exceptions import InsufficientPayloadError, ProviderResponseError
 
 UserModel = get_user_model()
 logger = getLogger(DjangoOACConfig.name)
@@ -22,6 +25,52 @@ def _get_missing_keys(required: set, given: Union[list, set, tuple]) -> str:
     return ", ".join(
         reversed(list(map(lambda key: f"'{key}'", required.difference(given))))
     )
+
+
+class JWKS:
+
+    __slots__ = ("_key", "_uri")
+
+    def __init__(self, uri: str) -> None:
+        self._key = sha1(uri.encode("utf-8")).hexdigest()
+        self._uri = uri
+
+    def _get_from_cache(self) -> JWKSet:
+        ret = cache.get(self._key)
+        logger.info(
+            f"found cached JWKS cached for '{self._uri}'",
+            extra={"scope": "model", "ip_state": "n/a:n/a"},
+        )
+
+        return JWKSet.from_json(ret) if ret else None
+
+    def _get_from_uri(self) -> JWKSet:
+        response = requests.get(self._uri)
+
+        if response.status_code != 200:
+            raise ProviderResponseError(
+                "jwks request failed,"
+                f" provider responded with code {response.status_code}"
+            )
+
+        cache.set(self._key, response.content)
+        logger.info(
+            f"JWKS for '{self._uri}' saved in cache",
+            extra={"scope": "model", "ip_state": "n/a:n/a"},
+        )
+
+        return JWKSet.from_json(response.content)
+
+    @property
+    def _jwks(self) -> JWKSet:
+        return self._get_from_cache() or self._get_from_uri()
+
+    def get(self, kid: str) -> str:
+        key = self._jwks.get_key(kid)
+        return key.export() if key else ""
+
+    def refresh(self) -> None:
+        self._get_from_uri()
 
 
 class TokenRemoteManager:
@@ -149,43 +198,23 @@ class UserRemoteManager:
     @staticmethod
     def get_from_id_token(id_token: str) -> UserModel:
         kid = jwt.get_unverified_header(id_token).get("kid", None)
-
-        # TODO:
-        #  caching
-
-        response = requests.get(settings.OAC["jwks_uri"])
-
-        if response.status_code != 200:
-            raise ProviderResponseError(
-                "jwks request failed,"
-                f" provider responded with code {response.status_code}"
-            )
-
-        # TODO:
-        #  auto-pick algorithm
+        jwks = JWKS(settings.OAC["jwks_uri"])
 
         try:
-            key = jwt.algorithms.RSAAlgorithm.from_jwk(
-                json.dumps(
-                    next(
-                        (
-                            k
-                            for k in response.json().get("keys", [{}])
-                            if k.get("kid") == kid and k["kty"] == "RSA"
-                        ),
-                        {},
-                    )
-                )
+            payload = jwt.decode(
+                id_token,
+                audience=settings.OAC.get("client_id", ""),
+                key=jwt.algorithms.RSAAlgorithm.from_jwk(jwks.get(kid)),
+                algorithms=["RS256"],
             )
-        except KeyError:
-            raise MissingKtyError("missing JSON Web Key Type")
-
-        payload = jwt.decode(
-            id_token,
-            audience=settings.OAC.get("client_id", ""),
-            key=key,
-            algorithms=["RS256"],
-        )
+        except InvalidSignatureError:
+            jwks.refresh()
+            payload = jwt.decode(
+                id_token,
+                audience=settings.OAC.get("client_id", ""),
+                key=jwt.algorithms.RSAAlgorithm.from_jwk(jwks.get(kid)),
+                algorithms=["RS256"],
+            )
 
         missing = _get_missing_keys(
             {"first_name", "last_name", "email"}, payload.keys()

@@ -3,6 +3,7 @@ from unittest.mock import Mock
 
 import jwt
 import pytest
+from django.core.cache import cache
 from jwcrypto.jwk import JWK
 
 
@@ -54,3 +55,11 @@ def oac_mock_get_response() -> Mock:
 @pytest.fixture
 def oac_jwk() -> JWKTestHelper:
     return JWKTestHelper()
+
+
+@pytest.yield_fixture(autouse=True)
+def clear_django_cache():
+    # setup
+    yield
+    # teardown
+    cache.clear()
