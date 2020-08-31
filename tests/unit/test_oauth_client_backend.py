@@ -70,18 +70,16 @@ def test_authenticate_failure(mock__parse_request_uri, rf):
         backend.authenticate(request)
 
 
-@patch("django_oac.backends.User.remote")
-@patch("django_oac.backends.Token.remote")
+@patch("django_oac.backends.User")
+@patch("django_oac.backends.Token")
 @patch("django_oac.backends.OAuthClientBackend._parse_request_uri")
-def test_authenticate_succeeded(
-    mock__parse_request_uri, mock_token_remote, mock_user_remote, rf
-):
+def test_authenticate_succeeded(mock__parse_request_uri, mock_token, mock_user, rf):
     user = Mock()
     type(user).email = PropertyMock(return_value="spam@eggs")
 
     mock__parse_request_uri.return_value = "foo"
-    mock_token_remote.get.return_value = Mock(), "foo"
-    mock_user_remote.get_from_id_token.return_value = user
+    mock_token.remote.get.return_value = Mock(), "foo"
+    mock_user.get_from_id_token.return_value = user
 
     request = rf.get(
         reverse("django_oac:authenticate"), {"code": "foo", "state": "test"}

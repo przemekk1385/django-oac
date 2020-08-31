@@ -57,7 +57,7 @@ class OAuthClientBackend:
 
         token, id_token = Token.remote.get(code)
 
-        user = User.remote.get_from_id_token(id_token)
+        user = User.get_from_id_token(id_token)
 
         token.user = user
         token.save()

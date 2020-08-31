@@ -17,7 +17,7 @@ UserModel = get_user_model()
 
 def test_get_from_id_token_pyjwt_error():
     with pytest.raises(PyJWTError):
-        User.remote.get_from_id_token("foo")
+        User.get_from_id_token("foo")
 
 
 @patch("django_oac.models.requests")
@@ -31,7 +31,7 @@ def test_get_from_id_token_provider_response_error(mock_jwt, mock_requests):
     mock_requests.get.return_value = response
 
     with pytest.raises(ProviderResponseError) as e_info:
-        User.remote.get_from_id_token("foo")
+        User.get_from_id_token("foo")
 
     assert "provider responded with code 400" in str(e_info.value)
 
@@ -57,7 +57,7 @@ def test_get_from_id_token_expired_signature_error(mock_requests, settings, oac_
     mock_requests.get.return_value = response
 
     with pytest.raises(ExpiredSignatureError):
-        User.remote.get_from_id_token(oac_jwk.id_token)
+        User.get_from_id_token(oac_jwk.id_token)
 
 
 @pytest.mark.parametrize(
@@ -83,7 +83,7 @@ def test_get_from_id_token_incorrect_jwk(
     mock_requests.get.return_value = response
 
     with pytest.raises(expected_exception):
-        User.remote.get_from_id_token(oac_jwk.id_token)
+        User.get_from_id_token(oac_jwk.id_token)
 
 
 @patch("django_oac.models.requests")
@@ -110,7 +110,7 @@ def test_get_from_id_token_missing_jwk(mock_requests, settings, oac_jwk):
     mock_requests.get.return_value = response
 
     with pytest.raises(PyJWTError):
-        User.remote.get_from_id_token(id_token)
+        User.get_from_id_token(id_token)
 
 
 @pytest.mark.django_db
@@ -128,7 +128,7 @@ def test_get_from_id_token_insufficient_payload(mock_requests, mock_jwt):
     mock_requests.get.return_value = response
 
     with pytest.raises(InsufficientPayloadError):
-        User.remote.get_from_id_token("foo")
+        User.get_from_id_token("foo")
 
 
 @pytest.mark.django_db
@@ -151,7 +151,7 @@ def test_get_from_id_token_create_user(mock_requests, oac_jwk, settings):
 
     mock_requests.get.return_value = response
 
-    user = User.remote.get_from_id_token(oac_jwk.id_token)
+    user = User.get_from_id_token(oac_jwk.id_token)
 
     assert "spam" == user.first_name
     assert "eggs" == user.last_name
@@ -190,7 +190,7 @@ def test_get_from_id_token_get_existing_user(mock_requests, settings, oac_jwk):
 
     mock_requests.get.return_value = response
 
-    user = User.remote.get_from_id_token(oac_jwk.id_token)
+    user = User.get_from_id_token(oac_jwk.id_token)
 
     assert "spam" == user.first_name
     assert "eggs" == user.last_name

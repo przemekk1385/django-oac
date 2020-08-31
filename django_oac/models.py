@@ -27,52 +27,6 @@ def _get_missing_keys(required: set, given: Union[list, set, tuple]) -> str:
     )
 
 
-class JWKS:
-
-    __slots__ = ("_key", "_uri")
-
-    def __init__(self, uri: str) -> None:
-        self._key = sha1(uri.encode("utf-8")).hexdigest()
-        self._uri = uri
-
-    def _get_from_cache(self) -> JWKSet:
-        ret = cache.get(self._key)
-        logger.info(
-            f"found cached JWKS cached for '{self._uri}'",
-            extra={"scope": "model", "ip_state": "n/a:n/a"},
-        )
-
-        return JWKSet.from_json(ret) if ret else None
-
-    def _get_from_uri(self) -> JWKSet:
-        response = requests.get(self._uri)
-
-        if response.status_code != 200:
-            raise ProviderResponseError(
-                "jwks request failed,"
-                f" provider responded with code {response.status_code}"
-            )
-
-        cache.set(self._key, response.content)
-        logger.info(
-            f"JWKS for '{self._uri}' saved in cache",
-            extra={"scope": "model", "ip_state": "n/a:n/a"},
-        )
-
-        return JWKSet.from_json(response.content)
-
-    @property
-    def _jwks(self) -> JWKSet:
-        return self._get_from_cache() or self._get_from_uri()
-
-    def get(self, kid: str) -> str:
-        key = self._jwks.get_key(kid)
-        return key.export() if key else ""
-
-    def refresh(self) -> None:
-        self._get_from_uri()
-
-
 class TokenRemoteManager:
     @staticmethod
     def _prepare_get_access_token_request_payload(code: str) -> dict:
@@ -194,7 +148,53 @@ class Token(models.Model):
             )
 
 
-class UserRemoteManager:
+class JWKS:
+
+    __slots__ = ("_key", "_uri")
+
+    def __init__(self, uri: str) -> None:
+        self._key = sha1(uri.encode("utf-8")).hexdigest()
+        self._uri = uri
+
+    def _get_from_cache(self) -> JWKSet:
+        ret = cache.get(self._key)
+        logger.info(
+            f"found cached JWKS cached for '{self._uri}'",
+            extra={"scope": "model", "ip_state": "n/a:n/a"},
+        )
+
+        return JWKSet.from_json(ret) if ret else None
+
+    def _get_from_uri(self) -> JWKSet:
+        response = requests.get(self._uri)
+
+        if response.status_code != 200:
+            raise ProviderResponseError(
+                "jwks request failed,"
+                f" provider responded with code {response.status_code}"
+            )
+
+        cache.set(self._key, response.content)
+        logger.info(
+            f"JWKS for '{self._uri}' saved in cache",
+            extra={"scope": "model", "ip_state": "n/a:n/a"},
+        )
+
+        return JWKSet.from_json(response.content)
+
+    @property
+    def _jwks(self) -> JWKSet:
+        return self._get_from_cache() or self._get_from_uri()
+
+    def get(self, kid: str) -> str:
+        key = self._jwks.get_key(kid)
+        return key.export() if key else ""
+
+    def refresh(self) -> None:
+        self._get_from_uri()
+
+
+class User:
     @staticmethod
     def get_from_id_token(id_token: str) -> UserModel:
         kid = jwt.get_unverified_header(id_token).get("kid", None)
@@ -250,8 +250,3 @@ class UserRemoteManager:
                 user.token_set.all().delete()
 
         return user
-
-
-class User:
-
-    remote = UserRemoteManager()
