@@ -12,6 +12,7 @@ from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.views.decorators.http import require_GET
 from ipware import get_client_ip
+from jwcrypto.common import JWException
 from jwt.exceptions import PyJWTError
 from requests.exceptions import RequestException
 
@@ -105,6 +106,7 @@ def callback_view(request: WSGIRequest) -> HttpResponse:
         )
     except (
         JSONDecodeError,
+        JWException,
         OACError,
         PyJWTError,
         RequestException,
