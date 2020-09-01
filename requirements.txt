@@ -1,9 +1,10 @@
 black==19.10b0
 coverage==4.5.4
 cryptography==3.1
-Django==3.1
+Django>=2.2,<=3.1
 django-ipware==3.0.1
 django-sslserver==0.22
+flake8==3.8.3
 isort==5.4.2
 jwcrypto==0.7
 pendulum==2.1.2
