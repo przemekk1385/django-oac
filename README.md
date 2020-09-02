@@ -61,3 +61,11 @@ And in project's urls.
     ]
     
 That's it - your are good to go.
+
+### Extra settings
+
+Additional keys that can be set in OAC dict.
+
+|key|default value|description|
+|:---|:---|:---|
+|state_expires_in|300|state expiration time in seconds, set None to disable check|

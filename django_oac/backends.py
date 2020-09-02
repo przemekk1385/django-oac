@@ -47,11 +47,9 @@ class OAuthClientBackend:
 
         code = self._parse_request_uri(request_uri, state_str)
 
-        # TODO:
-        #  configurable state expiration time
-
-        if timezone.now() >= pendulum.from_timestamp(
-            state_timestamp + 300, tz=settings.TIME_ZONE
+        state_expires_in = settings.OAC.get("state_expires_in", 300)
+        if state_expires_in is not None and timezone.now() >= pendulum.from_timestamp(
+            state_timestamp + state_expires_in, tz=settings.TIME_ZONE
         ):
             raise ExpiredStateError("state has expired")
 
