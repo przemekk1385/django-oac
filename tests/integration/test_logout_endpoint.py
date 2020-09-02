@@ -10,7 +10,7 @@ UserModel = get_user_model()
 
 @pytest.mark.django_db
 @patch("django_oac.models.requests")
-def test_authentication_endpoint(settings, client, oac_jwk):
+def test_authentication_endpoint(settings, client, oac_jwt):
     settings.OAC = {
         "authorize_uri": "http://www.example.com/",
         "token_uri": "http://www.example.com/",

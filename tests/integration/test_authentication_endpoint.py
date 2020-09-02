@@ -3,7 +3,7 @@ from django.shortcuts import reverse
 
 
 @pytest.mark.django_db
-def test_authentication_endpoint(settings, client, oac_jwk):
+def test_authentication_endpoint(settings, client, oac_jwt):
     settings.OAC = {
         "authorize_uri": "http://www.example.com/",
         "token_uri": "http://www.example.com/",

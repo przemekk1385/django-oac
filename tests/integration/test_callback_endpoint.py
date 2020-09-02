@@ -9,7 +9,7 @@ from django.utils import timezone
 
 @pytest.mark.django_db
 @patch("django_oac.models.requests")
-def test_callback_endpoint(mock_requests, settings, client, oac_jwk):
+def test_callback_endpoint(mock_requests, settings, client, oac_jwt):
     state_str = uuid4().hex
 
     settings.OAC = {
@@ -26,8 +26,8 @@ def test_callback_endpoint(mock_requests, settings, client, oac_jwk):
     session["OAC_CLIENT_IP"] = "127.0.0.1"
     session.save()
 
-    oac_jwk.kid = "foo"
-    oac_jwk.id_token = {
+    oac_jwt.kid = "foo"
+    oac_jwt.id_token = {
         "aud": "foo-bar-baz",
         "first_name": "spam",
         "last_name": "eggs",
@@ -41,14 +41,12 @@ def test_callback_endpoint(mock_requests, settings, client, oac_jwk):
         "access_token": "foo",
         "refresh_token": "bar",
         "expires_in": 3600,
-        "id_token": oac_jwk.id_token,
+        "id_token": oac_jwt.id_token,
     }
 
     mock_get_response = Mock()
     type(mock_get_response).status_code = PropertyMock(return_value=200)
-    type(mock_get_response).content = PropertyMock(
-        return_value=json.dumps({"keys": [oac_jwk.jwk]})
-    )
+    type(mock_get_response).content = PropertyMock(return_value=oac_jwt.jwk_set)
 
     mock_requests.post.return_value = mock_post_response
     mock_requests.get.return_value = mock_get_response

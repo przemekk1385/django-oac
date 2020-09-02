@@ -37,10 +37,10 @@ def test_get_from_id_token_provider_response_error(mock_jwt, mock_requests):
 
 
 @patch("django_oac.models.requests")
-def test_get_from_id_token_expired_signature_error(mock_requests, settings, oac_jwk):
+def test_get_from_id_token_expired_signature_error(mock_requests, settings, oac_jwt):
     settings.OAC["client_id"] = "foo-bar-baz"
-    oac_jwk.kid = "foo"
-    oac_jwk.id_token = {
+    oac_jwt.kid = "foo"
+    oac_jwt.id_token = {
         "aud": "foo-bar-baz",
         "exp": pendulum.instance(timezone.now()).subtract(years=1),
         "first_name": "spam",
@@ -50,14 +50,12 @@ def test_get_from_id_token_expired_signature_error(mock_requests, settings, oac_
 
     response = Mock()
     type(response).status_code = PropertyMock(return_value=200)
-    type(response).content = PropertyMock(
-        return_value=json.dumps({"keys": [oac_jwk.jwk]})
-    )
+    type(response).content = PropertyMock(return_value=oac_jwt.jwk_set)
 
     mock_requests.get.return_value = response
 
     with pytest.raises(ExpiredSignatureError):
-        User.get_from_id_token(oac_jwk.id_token)
+        User.get_from_id_token(oac_jwt.id_token)
 
 
 @pytest.mark.parametrize(
@@ -65,11 +63,11 @@ def test_get_from_id_token_expired_signature_error(mock_requests, settings, oac_
 )
 @patch("django_oac.models.requests")
 def test_get_from_id_token_incorrect_jwk(
-    mock_requests, jwk, expected_exception, settings, oac_jwk
+    mock_requests, jwk, expected_exception, settings, oac_jwt
 ):
     settings.OAC["client_id"] = "foo-bar-baz"
-    oac_jwk.kid = "foo"
-    oac_jwk.id_token = {
+    oac_jwt.kid = "foo"
+    oac_jwt.id_token = {
         "aud": "foo-bar-baz",
         "first_name": "spam",
         "last_name": "eggs",
@@ -83,29 +81,27 @@ def test_get_from_id_token_incorrect_jwk(
     mock_requests.get.return_value = response
 
     with pytest.raises(expected_exception):
-        User.get_from_id_token(oac_jwk.id_token)
+        User.get_from_id_token(oac_jwt.id_token)
 
 
 @patch("django_oac.models.requests")
-def test_get_from_id_token_missing_jwk(mock_requests, settings, oac_jwk):
+def test_get_from_id_token_missing_jwk(mock_requests, settings, oac_jwt):
     settings.OAC["client_id"] = "foo-bar-baz"
-    oac_jwk.kid = "foo"
-    oac_jwk.id_token = {
+    oac_jwt.kid = "foo"
+    oac_jwt.id_token = {
         "aud": "foo-bar-baz",
         "first_name": "spam",
         "last_name": "eggs",
         "email": "spam@eggs",
     }
 
-    id_token = oac_jwk.id_token
+    id_token = oac_jwt.id_token
 
-    oac_jwk.kid = "bar"
+    oac_jwt.kid = "bar"
 
     response = Mock()
     type(response).status_code = PropertyMock(return_value=200)
-    type(response).content = PropertyMock(
-        return_value=json.dumps({"keys": [oac_jwk.jwk]})
-    )
+    type(response).content = PropertyMock(return_value=oac_jwt.jwk_set)
 
     mock_requests.get.return_value = response
 
@@ -133,10 +129,10 @@ def test_get_from_id_token_insufficient_payload(mock_requests, mock_jwt):
 
 @pytest.mark.django_db
 @patch("django_oac.models.requests")
-def test_get_from_id_token_create_user(mock_requests, oac_jwk, settings):
+def test_get_from_id_token_create_user(mock_requests, oac_jwt, settings):
     settings.OAC["client_id"] = "foo-bar-baz"
-    oac_jwk.kid = "foo"
-    oac_jwk.id_token = {
+    oac_jwt.kid = "foo"
+    oac_jwt.id_token = {
         "aud": "foo-bar-baz",
         "first_name": "spam",
         "last_name": "eggs",
@@ -145,13 +141,11 @@ def test_get_from_id_token_create_user(mock_requests, oac_jwk, settings):
 
     response = Mock()
     type(response).status_code = PropertyMock(return_value=200)
-    type(response).content = PropertyMock(
-        return_value=json.dumps({"keys": [oac_jwk.jwk]})
-    )
+    type(response).content = PropertyMock(return_value=oac_jwt.jwk_set)
 
     mock_requests.get.return_value = response
 
-    user = User.get_from_id_token(oac_jwk.id_token)
+    user = User.get_from_id_token(oac_jwt.id_token)
 
     assert "spam" == user.first_name
     assert "eggs" == user.last_name
@@ -161,7 +155,7 @@ def test_get_from_id_token_create_user(mock_requests, oac_jwk, settings):
 
 @pytest.mark.django_db
 @patch("django_oac.models.requests")
-def test_get_from_id_token_get_existing_user(mock_requests, settings, oac_jwk):
+def test_get_from_id_token_get_existing_user(mock_requests, settings, oac_jwt):
     user = UserModel.objects.create(
         first_name="spam", last_name="eggs", email="spam@eggs", username=uuid4().hex
     )
@@ -174,8 +168,8 @@ def test_get_from_id_token_get_existing_user(mock_requests, settings, oac_jwk):
     )
 
     settings.OAC["client_id"] = "foo-bar-baz"
-    oac_jwk.kid = "foo"
-    oac_jwk.id_token = {
+    oac_jwt.kid = "foo"
+    oac_jwt.id_token = {
         "aud": "foo-bar-baz",
         "first_name": "spam",
         "last_name": "eggs",
@@ -184,13 +178,11 @@ def test_get_from_id_token_get_existing_user(mock_requests, settings, oac_jwk):
 
     response = Mock()
     type(response).status_code = PropertyMock(return_value=200)
-    type(response).content = PropertyMock(
-        return_value=json.dumps({"keys": [oac_jwk.jwk]})
-    )
+    type(response).content = PropertyMock(return_value=oac_jwt.jwk_set)
 
     mock_requests.get.return_value = response
 
-    user = User.get_from_id_token(oac_jwk.id_token)
+    user = User.get_from_id_token(oac_jwt.id_token)
 
     assert "spam" == user.first_name
     assert "eggs" == user.last_name
