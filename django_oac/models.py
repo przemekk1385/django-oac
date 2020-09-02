@@ -163,7 +163,7 @@ class JWKS:
             extra={"scope": "model", "ip_state": "n/a:n/a"},
         )
 
-        return JWKSet.from_json(ret) if ret else None
+        return ret
 
     def _get_from_uri(self) -> JWKSet:
         response = requests.get(self._uri)
@@ -180,14 +180,14 @@ class JWKS:
             extra={"scope": "model", "ip_state": "n/a:n/a"},
         )
 
-        return JWKSet.from_json(response.content)
+        return response.content
 
     @property
-    def _jwks(self) -> JWKSet:
-        return self._get_from_cache() or self._get_from_uri()
+    def _jwk_set(self) -> JWKSet:
+        return JWKSet.from_json(self._get_from_cache() or self._get_from_uri())
 
     def get(self, kid: str) -> str:
-        key = self._jwks.get_key(kid)
+        key = self._jwk_set.get_key(kid)
         return key.export() if key else ""
 
     def refresh(self) -> None:
