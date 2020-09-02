@@ -30,9 +30,9 @@ class OAuthClientBackend:
         return query_dict["code"]
 
     @staticmethod
-    def get_user(pk: int) -> Union[UserModel, None]:
+    def get_user(primary_key: int) -> Union[UserModel, None]:
         try:
-            user = UserModel.objects.get(pk=pk)
+            user = UserModel.objects.get(pk=primary_key)
         except UserModel.DoesNotExist:
             user = None
 
@@ -41,6 +41,7 @@ class OAuthClientBackend:
     def authenticate(
         self, request: WSGIRequest, username: str = None, password: str = None
     ) -> Union[UserModel, None]:
+        # pylint: disable=unused-argument
         request_uri = request.build_absolute_uri()
         state_str = request.session.get("OAC_STATE_STR")
         state_timestamp = request.session.get("OAC_STATE_TIMESTAMP", 0)

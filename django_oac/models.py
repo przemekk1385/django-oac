@@ -14,11 +14,11 @@ from django.utils import timezone
 from jwcrypto.jwk import JWKSet
 from jwt.exceptions import InvalidSignatureError
 
-from .apps import DjangoOACConfig
 from .exceptions import InsufficientPayloadError, ProviderResponseError
+from .logger import get_extra
 
 UserModel = get_user_model()
-logger = getLogger(DjangoOACConfig.name)
+logger = getLogger(__package__)
 
 
 def _get_missing_keys(required: set, given: Union[list, set, tuple]) -> str:
@@ -27,6 +27,7 @@ def _get_missing_keys(required: set, given: Union[list, set, tuple]) -> str:
     )
 
 
+# pylint: disable=too-few-public-methods
 class TokenRemoteManager:
     @staticmethod
     def _prepare_get_access_token_request_payload(code: str) -> dict:
@@ -159,8 +160,9 @@ class JWKS:
     def _get_from_cache(self) -> JWKSet:
         ret = cache.get(self._key)
         logger.info(
-            f"found cached JWKS cached for '{self._uri}'",
-            extra={"scope": "model", "ip_state": "n/a:n/a"},
+            "found cached JWKS cached for '%s'",
+            self._uri,
+            extra=get_extra("models.JWKS"),
         )
 
         return ret
@@ -176,8 +178,7 @@ class JWKS:
 
         cache.set(self._key, response.content)
         logger.info(
-            f"JWKS for '{self._uri}' saved in cache",
-            extra={"scope": "model", "ip_state": "n/a:n/a"},
+            "JWKS for '%s' saved in cache", self._uri, extra=get_extra("models.JWKS"),
         )
 
         return response.content
@@ -194,6 +195,7 @@ class JWKS:
         self._get_from_uri()
 
 
+# pylint: disable=too-few-public-methods
 class User:
     @staticmethod
     def get_from_id_token(id_token: str) -> UserModel:
@@ -232,8 +234,9 @@ class User:
             user = UserModel.objects.get(email=payload.get("email"))
         except UserModel.DoesNotExist:
             logger.info(
-                f"created new user '{payload['email']}'",
-                extra={"scope": "model", "ip_state": "n/a:n/a"},
+                "created new user '%s'",
+                payload["email"],
+                extra=get_extra("models.User"),
             )
             user = UserModel.objects.create(
                 first_name=payload["first_name"],
@@ -243,8 +246,9 @@ class User:
             )
         else:
             logger.info(
-                f"matched existing user '{payload['email']}'",
-                extra={"scope": "model", "ip_state": "n/a:n/a"},
+                "matched existing user '%s'",
+                payload["email"],
+                extra=get_extra("models.User"),
             )
             if user.token_set.exists():
                 user.token_set.all().delete()

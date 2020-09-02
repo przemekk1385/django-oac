@@ -14,12 +14,12 @@ def _logout(request: WSGIRequest):
     request.session.pop("_auth_user_backend", None)
 
 
+# pylint: disable=invalid-name
 @pytest.mark.parametrize(
-    "exception,expected_message",
-    [(ProviderResponseError, "foo"), (KeyError, "configuration error, missing 'baz'")],
+    "exception", [ProviderResponseError, KeyError],
 )
 @patch("django_oac.views.logout")
-def test_logout_view_failure(mock_logout, exception, expected_message, rf):
+def test_logout_view_failure(mock_logout, exception, rf):
     token = Mock()
     token.revoke.side_effect = exception("foo")
     user = Mock()
@@ -35,9 +35,10 @@ def test_logout_view_failure(mock_logout, exception, expected_message, rf):
 
     response = logout_view(request)
 
-    assert 500 == response.status_code
+    assert response.status_code == 500
 
 
+# pylint: disable=invalid-name
 @patch("django_oac.views.logout")
 def test_logout_view_succeeded(mock_logout, rf):
     user = Mock()
@@ -53,4 +54,4 @@ def test_logout_view_succeeded(mock_logout, rf):
 
     response = logout_view(request)
 
-    assert 302 == response.status_code
+    assert response.status_code == 302

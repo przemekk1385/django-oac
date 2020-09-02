@@ -1,29 +1,21 @@
-from logging import LoggerAdapter, getLogger
+from logging import Logger
 from typing import Callable, Type
 
 from django.contrib.auth import logout
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponseBase
 
-from .apps import DjangoOACConfig
+from .decorators import populate_method_logger as populate_logger
 from .exceptions import ProviderResponseError
 
 
+# pylint: disable=too-few-public-methods
 class OAuthClientMiddleware:
     def __init__(self, get_response: Callable) -> None:
         self.get_response = get_response
 
-    def __call__(self, request: WSGIRequest) -> Type[HttpResponseBase]:
-        logger = LoggerAdapter(
-            getLogger(DjangoOACConfig.name),
-            {
-                "scope": "middleware",
-                "ip_state": (
-                    f"{request.session.get('OAC_CLIENT_IP', 'n/a')}"
-                    f":{request.session.get('OAC_STATE_STR', 'n/a')}"
-                ),
-            },
-        )
+    @populate_logger
+    def __call__(self, request: WSGIRequest, logger: Logger) -> Type[HttpResponseBase]:
         user = request.user
         if user.is_authenticated:
             token = user.token_set.last()
@@ -32,8 +24,8 @@ class OAuthClientMiddleware:
                 logger.info(f"access token for user '{user.email}' has expired")
                 try:
                     token.refresh()
-                except ProviderResponseError as e:
-                    logger.error(f"raised ProviderResponseError: {e}")
+                except ProviderResponseError as err:
+                    logger.error(f"raised ProviderResponseError: {err}")
                     token.delete()
                     logout(request)
                 else:

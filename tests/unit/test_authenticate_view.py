@@ -3,6 +3,7 @@ from django.shortcuts import reverse
 from django_oac.views import authenticate_view
 
 
+# pylint: disable=invalid-name
 def test_authenticate_view_failure(
     settings, rf,
 ):
@@ -12,9 +13,10 @@ def test_authenticate_view_failure(
 
     response = authenticate_view(request)
 
-    assert 500 == response.status_code
+    assert response.status_code == 500
 
 
+# pylint: disable=invalid-name
 def test_authenticate_view_succeeded(
     settings, rf,
 ):
@@ -24,4 +26,4 @@ def test_authenticate_view_succeeded(
 
     response = authenticate_view(request)
 
-    assert 302 == response.status_code
+    assert response.status_code == 302

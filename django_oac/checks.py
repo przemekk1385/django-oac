@@ -4,6 +4,7 @@ from django.conf import settings
 from django.core.checks import Error, register
 
 
+# pylint: disable=unused-argument
 @register
 def settings_oac_attr_check(app_configs, **kwargs):
     errors = []
@@ -20,11 +21,12 @@ def settings_oac_attr_check(app_configs, **kwargs):
         )
     elif not isinstance(settings.OAC, dict):
         errors.append(
-            Error("settings.OAC should be dict instance", id="django_oac.E002",)
+            Error("settings.OAC should be dict instance", id="django_oac.E002")
         )
     return errors
 
 
+# pylint: disable=unused-argument
 @register
 def settings_oac_keys_check(app_configs, **kwargs):
     errors = []
@@ -45,6 +47,7 @@ def settings_oac_keys_check(app_configs, **kwargs):
     return errors
 
 
+# pylint: disable=unused-argument
 @register
 def settings_oac_uris_check(app_configs, **kwargs):
     errors = []
@@ -53,7 +56,7 @@ def settings_oac_uris_check(app_configs, **kwargs):
             k
             for k in settings.OAC.keys()
             if k
-            in ("authorize_uri", "token_uri", "revoke_uri", "redirect_uri", "jwks_uri",)
+            in ("authorize_uri", "token_uri", "revoke_uri", "redirect_uri", "jwks_uri")
         ]:
             parse_result = urlparse(settings.OAC[key])
             if not parse_result.scheme or not parse_result.netloc:
@@ -65,6 +68,6 @@ def settings_oac_uris_check(app_configs, **kwargs):
     return errors
 
 
-# TODO:
+# FIXME:
 #  check environmental variables 'client_id', 'client_secret'
 #  check middleware and authentication backend

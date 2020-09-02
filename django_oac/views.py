@@ -1,5 +1,5 @@
 from json.decoder import JSONDecodeError
-from logging import LoggerAdapter, getLogger
+from logging import Logger, LoggerAdapter, getLogger
 from uuid import uuid4
 
 from django.conf import settings
@@ -16,19 +16,20 @@ from jwcrypto.common import JWException
 from jwt.exceptions import PyJWTError
 from requests.exceptions import RequestException
 
-from .apps import DjangoOACConfig
+from .decorators import populate_view_logger as populate_logger
 from .exceptions import (
     ExpiredStateError,
     OACError,
     ProviderRequestError,
     ProviderResponseError,
 )
+from .logger import get_extra
 
 
 @require_GET
 def authenticate_view(request: WSGIRequest) -> HttpResponse:
     state_str = uuid4().hex
-    client_ip, is_routable = get_client_ip(request)
+    client_ip, _ = get_client_ip(request)
 
     if request.session.get("OAC_STATE_STR") != "test":
         request.session["OAC_STATE_STR"] = state_str
@@ -36,27 +37,25 @@ def authenticate_view(request: WSGIRequest) -> HttpResponse:
         request.session["OAC_CLIENT_IP"] = client_ip or "unknown"
 
     logger = LoggerAdapter(
-        getLogger(DjangoOACConfig.name),
-        {
-            "scope": "authenticate_view",
-            "ip_state": (
-                f"{request.session['OAC_CLIENT_IP']}"
-                f":{request.session['OAC_STATE_STR']}"
-            ),
-        },
+        getLogger(__package__),
+        get_extra(
+            "views.authenticate_view",
+            request.session["OAC_CLIENT_IP"],
+            request.session["OAC_STATE_STR"],
+        ),
     )
     logger.info("authentication request")
 
     if not settings.OAC.get("authorize_uri"):
         logger.error("missing 'authorize_uri'")
-        return render(
+        ret = render(
             request,
             "error.html",
             {"message": "App config is incomplete, cannot continue."},
             status=500,
         )
     else:
-        return redirect(
+        ret = redirect(
             f"{settings.OAC['authorize_uri']}"
             f"?scope={settings.OAC.get('scope', 'openid')}"
             f"&client_id={settings.OAC.get('client_id', '')}"
@@ -64,27 +63,19 @@ def authenticate_view(request: WSGIRequest) -> HttpResponse:
             f"&state={state_str}"
             "&response_type=code"
         )
+    return ret
 
 
 @require_GET
-def callback_view(request: WSGIRequest) -> HttpResponse:
-    logger = LoggerAdapter(
-        getLogger(DjangoOACConfig.name),
-        {
-            "scope": "callback_view",
-            "ip_state": (
-                f"{request.session.get('OAC_CLIENT_IP', 'n/a')}"
-                f":{request.session.get('OAC_STATE_STR', 'n/a')}"
-            ),
-        },
-    )
+@populate_logger
+def callback_view(request: WSGIRequest, logger: Logger = None) -> HttpResponse:
     logger.info("callback request")
 
     try:
         user = authenticate(request)
-    except ProviderRequestError as e:
-        logger.error(f"raised django_oac.exceptions.ProviderRequestError: {e}")
-        ret = render(request, "error.html", {"message": "Bad request."}, status=400,)
+    except ProviderRequestError as err:
+        logger.error(f"raised django_oac.exceptions.ProviderRequestError: {err}")
+        ret = render(request, "error.html", {"message": "Bad request."}, status=400)
     except ExpiredStateError:
         logger.info("state expired")
         ret = render(
@@ -96,8 +87,8 @@ def callback_view(request: WSGIRequest) -> HttpResponse:
             },
             status=400,
         )
-    except KeyError as e:
-        logger.error(f"configuration error, missing {e}")
+    except KeyError as err:
+        logger.error(f"configuration error, missing {err}")
         ret = render(
             request,
             "error.html",
@@ -112,8 +103,10 @@ def callback_view(request: WSGIRequest) -> HttpResponse:
         RequestException,
         TypeError,
         ValueError,
-    ) as e:
-        logger.error(f"raised {e.__class__.__module__}.{e.__class__.__name__}: {e}")
+    ) as err:
+        logger.error(
+            f"raised {err.__class__.__module__}.{err.__class__.__name__}: {err}"
+        )
         ret = render(
             request,
             "error.html",
@@ -135,17 +128,8 @@ def callback_view(request: WSGIRequest) -> HttpResponse:
 
 @login_required(login_url=reverse_lazy("django_oac:authenticate"))
 @require_GET
-def logout_view(request: WSGIRequest) -> HttpResponse:
-    logger = LoggerAdapter(
-        getLogger(DjangoOACConfig.name),
-        {
-            "scope": "logout_view",
-            "ip_state": (
-                f"{request.session.get('OAC_CLIENT_IP', 'n/a')}"
-                f":{request.session.get('OAC_STATE_STR', 'n/a')}"
-            ),
-        },
-    )
+@populate_logger
+def logout_view(request: WSGIRequest, logger: Logger = None) -> HttpResponse:
     logger.info("logout request")
 
     token = request.user.token_set.last()
@@ -154,16 +138,16 @@ def logout_view(request: WSGIRequest) -> HttpResponse:
     if token:
         try:
             token.revoke()
-        except KeyError as e:
-            logger.error(f"configuration error, missing {e}")
+        except KeyError as err:
+            logger.error(f"configuration error, missing {err}")
             ret = render(
                 request,
                 "error.html",
                 {"message": "App config is incomplete, cannot continue."},
                 status=500,
             )
-        except ProviderResponseError as e:
-            logger.error(f"raised django_oac.exceptions.ProviderResponseError: {e}")
+        except ProviderResponseError as err:
+            logger.error(f"raised django_oac.exceptions.ProviderResponseError: {err}")
             ret = render(
                 request,
                 "error.html",

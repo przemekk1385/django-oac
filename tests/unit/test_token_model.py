@@ -65,9 +65,9 @@ def test_refresh_method_succeeded(mock_requests):
 
     token.refresh()
 
-    assert "spam" == token.access_token
-    assert "eggs" == token.refresh_token
-    assert 3600 == token.expires_in
+    assert token.access_token == "spam"
+    assert token.refresh_token == "eggs"
+    assert token.expires_in == 3600
     assert not token.has_expired
 
 

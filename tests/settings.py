@@ -132,4 +132,5 @@ OAC = {
     "revoke_uri": "https://your.oauth.provider/revoke/",
     "redirect_uri": "http://your.site/oac/callback/",
     "jwks_uri": "https://your.oauth.provider/jwks/",
+    "client_id": "foo-bar-baz",
 }

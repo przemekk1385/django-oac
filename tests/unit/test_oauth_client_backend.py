@@ -16,6 +16,7 @@ from django_oac.exceptions import (
 UserModel = get_user_model()
 
 
+# pylint: disable=protected-access
 @pytest.mark.parametrize(
     "request_uri,state_str,expected_exception",
     [
@@ -32,9 +33,13 @@ def test__parse_request_uri_method_failure(request_uri, state_str, expected_exce
         OAuthClientBackend._parse_request_uri(request_uri, state_str)
 
 
+# pylint: disable=protected-access
 def test__parse_request_uri_method_succeeded():
-    assert "foo" == OAuthClientBackend._parse_request_uri(
-        "https://example.com/oac/callback/?code=foo&state=test", "test"
+    assert (
+        OAuthClientBackend._parse_request_uri(
+            "https://example.com/oac/callback/?code=foo&state=test", "test"
+        )
+        == "foo"
     )
 
 
@@ -52,6 +57,7 @@ def test_get_user_succeeded():
     assert OAuthClientBackend.get_user(user.id)
 
 
+# pylint: disable=invalid-name, protected-access
 @patch("django_oac.backends.OAuthClientBackend._parse_request_uri")
 def test_authenticate_failure(mock__parse_request_uri, rf):
     mock__parse_request_uri.return_value = "foo"
@@ -70,6 +76,7 @@ def test_authenticate_failure(mock__parse_request_uri, rf):
         backend.authenticate(request)
 
 
+# pylint: disable=invalid-name, protected-access
 @patch("django_oac.backends.User")
 @patch("django_oac.backends.Token")
 @patch("django_oac.backends.OAuthClientBackend._parse_request_uri")
@@ -93,4 +100,4 @@ def test_authenticate_succeeded(mock__parse_request_uri, mock_token, mock_user, 
 
     user = backend.authenticate(request)
 
-    assert "spam@eggs" == user.email
+    assert user.email == "spam@eggs"

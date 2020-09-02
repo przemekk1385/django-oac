@@ -41,9 +41,9 @@ def test_get_succeeded(mock_requests):
 
     mock_requests.post.return_value = response
 
-    token, id_token = Token.remote.get("spam")
+    token, _ = Token.remote.get("spam")
 
-    assert "foo" == token.access_token
-    assert "bar" == token.refresh_token
-    assert 3600 == token.expires_in
+    assert token.access_token == "foo"
+    assert token.refresh_token == "bar"
+    assert token.expires_in == 3600
     assert not token.has_expired

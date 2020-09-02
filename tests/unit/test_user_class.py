@@ -1,6 +1,5 @@
 import json
 from unittest.mock import Mock, PropertyMock, patch
-from uuid import uuid4
 
 import pendulum
 import pytest
@@ -11,6 +10,8 @@ from jwt.exceptions import ExpiredSignatureError, PyJWTError
 
 from django_oac.exceptions import InsufficientPayloadError, ProviderResponseError
 from django_oac.models import Token, User
+
+from ..common import ID_TOKEN_PAYLOAD, USER_PAYLOAD
 
 UserModel = get_user_model()
 
@@ -41,11 +42,8 @@ def test_get_from_id_token_expired_signature_error(mock_requests, settings, oac_
     settings.OAC["client_id"] = "foo-bar-baz"
     oac_jwt.kid = "foo"
     oac_jwt.id_token = {
-        "aud": "foo-bar-baz",
+        **ID_TOKEN_PAYLOAD,
         "exp": pendulum.instance(timezone.now()).subtract(years=1),
-        "first_name": "spam",
-        "last_name": "eggs",
-        "email": "spam@eggs",
     }
 
     response = Mock()
@@ -67,12 +65,7 @@ def test_get_from_id_token_incorrect_jwk(
 ):
     settings.OAC["client_id"] = "foo-bar-baz"
     oac_jwt.kid = "foo"
-    oac_jwt.id_token = {
-        "aud": "foo-bar-baz",
-        "first_name": "spam",
-        "last_name": "eggs",
-        "email": "spam@eggs",
-    }
+    oac_jwt.id_token = ID_TOKEN_PAYLOAD
 
     response = Mock()
     type(response).status_code = PropertyMock(return_value=200)
@@ -88,12 +81,7 @@ def test_get_from_id_token_incorrect_jwk(
 def test_get_from_id_token_missing_jwk(mock_requests, settings, oac_jwt):
     settings.OAC["client_id"] = "foo-bar-baz"
     oac_jwt.kid = "foo"
-    oac_jwt.id_token = {
-        "aud": "foo-bar-baz",
-        "first_name": "spam",
-        "last_name": "eggs",
-        "email": "spam@eggs",
-    }
+    oac_jwt.id_token = ID_TOKEN_PAYLOAD
 
     id_token = oac_jwt.id_token
 
@@ -132,12 +120,7 @@ def test_get_from_id_token_insufficient_payload(mock_requests, mock_jwt):
 def test_get_from_id_token_create_user(mock_requests, oac_jwt, settings):
     settings.OAC["client_id"] = "foo-bar-baz"
     oac_jwt.kid = "foo"
-    oac_jwt.id_token = {
-        "aud": "foo-bar-baz",
-        "first_name": "spam",
-        "last_name": "eggs",
-        "email": "spam@eggs",
-    }
+    oac_jwt.id_token = ID_TOKEN_PAYLOAD
 
     response = Mock()
     type(response).status_code = PropertyMock(return_value=200)
@@ -147,18 +130,16 @@ def test_get_from_id_token_create_user(mock_requests, oac_jwt, settings):
 
     user = User.get_from_id_token(oac_jwt.id_token)
 
-    assert "spam" == user.first_name
-    assert "eggs" == user.last_name
-    assert "spam@eggs" == user.email
-    assert user.username
+    assert user.first_name == USER_PAYLOAD["first_name"]
+    assert user.last_name == USER_PAYLOAD["last_name"]
+    assert user.email == USER_PAYLOAD["email"]
+    assert user.username == USER_PAYLOAD["username"]
 
 
 @pytest.mark.django_db
 @patch("django_oac.models.requests")
 def test_get_from_id_token_get_existing_user(mock_requests, settings, oac_jwt):
-    user = UserModel.objects.create(
-        first_name="spam", last_name="eggs", email="spam@eggs", username=uuid4().hex
-    )
+    user = UserModel.objects.create(**USER_PAYLOAD)
     Token.objects.create(
         access_token="foo",
         refresh_token="bar",
@@ -169,12 +150,7 @@ def test_get_from_id_token_get_existing_user(mock_requests, settings, oac_jwt):
 
     settings.OAC["client_id"] = "foo-bar-baz"
     oac_jwt.kid = "foo"
-    oac_jwt.id_token = {
-        "aud": "foo-bar-baz",
-        "first_name": "spam",
-        "last_name": "eggs",
-        "email": "spam@eggs",
-    }
+    oac_jwt.id_token = ID_TOKEN_PAYLOAD
 
     response = Mock()
     type(response).status_code = PropertyMock(return_value=200)
@@ -184,7 +160,7 @@ def test_get_from_id_token_get_existing_user(mock_requests, settings, oac_jwt):
 
     user = User.get_from_id_token(oac_jwt.id_token)
 
-    assert "spam" == user.first_name
-    assert "eggs" == user.last_name
-    assert "spam@eggs" == user.email
-    assert user.username
+    assert user.first_name == USER_PAYLOAD["first_name"]
+    assert user.last_name == USER_PAYLOAD["last_name"]
+    assert user.email == USER_PAYLOAD["email"]
+    assert user.username == USER_PAYLOAD["username"]

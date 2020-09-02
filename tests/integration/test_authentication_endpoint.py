@@ -3,15 +3,12 @@ from django.shortcuts import reverse
 
 
 @pytest.mark.django_db
-def test_authentication_endpoint(settings, client, oac_jwt):
-    settings.OAC = {
-        "authorize_uri": "http://www.example.com/",
-        "token_uri": "http://www.example.com/",
-        "revoke_uri": "http://www.example.com/",
-        "jwks_uri": "http://www.example.com/",
-        "client_id": "foo-bar-baz",
-    }
+def test_authentication_endpoint(client):
+    session = client.session
+    session["OAC_STATE_STR"] = "test"
+    session["OAC_CLIENT_IP"] = "127.0.0.1"
+    session.save()
 
     response = client.get(reverse("django_oac:authenticate"))
 
-    assert 302 == response.status_code
+    assert response.status_code == 302

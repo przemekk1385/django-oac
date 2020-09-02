@@ -24,6 +24,7 @@ def _login(request: WSGIRequest, user: UserModel, backend: str = ""):
     request.session["_auth_user_backend"] = backend
 
 
+# pylint: disable=invalid-name
 @patch("django_oac.views.authenticate")
 def test_callback_view_failure_expired_state_error(
     mock_authenticate, rf, caplog,
@@ -38,10 +39,11 @@ def test_callback_view_failure_expired_state_error(
 
     response = callback_view(request)
 
-    assert 400 == response.status_code
+    assert response.status_code == 400
     assert not caplog.records
 
 
+# pylint: disable=invalid-name, too-many-arguments
 @pytest.mark.parametrize(
     "exception,message,expected_message,expected_status_code",
     [
@@ -86,10 +88,11 @@ def test_callback_view_failure_other_exceptions(
 
     response = callback_view(request)
 
-    assert expected_status_code == response.status_code
+    assert response.status_code == expected_status_code
     assert caplog.records[0].msg.startswith(expected_message)
 
 
+# pylint: disable=invalid-name
 @patch("django_oac.views.login")
 @patch("django_oac.views.authenticate")
 def test_callback_view_user_authenticated(mock_authenticate, mock_login, rf):
@@ -106,9 +109,10 @@ def test_callback_view_user_authenticated(mock_authenticate, mock_login, rf):
 
     response = callback_view(request)
 
-    assert 302 == response.status_code
+    assert response.status_code == 302
 
 
+# pylint: disable=invalid-name
 @patch("django_oac.views.authenticate")
 def test_callback_view_user_not_authenticated(mock_authenticate, rf):
     mock_authenticate.return_value = None
@@ -119,4 +123,4 @@ def test_callback_view_user_not_authenticated(mock_authenticate, rf):
 
     response = callback_view(request)
 
-    assert 403 == response.status_code
+    assert response.status_code == 403

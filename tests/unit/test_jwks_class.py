@@ -12,6 +12,7 @@ def _get_from_uri():
     cache.set("foo", "bar")
 
 
+# pylint: disable=protected-access
 @patch("django_oac.models.cache")
 @patch("django_oac.models.sha1")
 def test__get_from_cache(mock_sha1, mock_cache, oac_jwk):
@@ -23,6 +24,7 @@ def test__get_from_cache(mock_sha1, mock_cache, oac_jwk):
     assert jwks._get_from_cache() == oac_jwk.jwk_set
 
 
+# pylint: disable=protected-access
 @patch("django_oac.models.requests")
 @patch("django_oac.models.sha1")
 def test__get_from_uri(mock_sha1, mock_requests, oac_jwk):
@@ -48,7 +50,7 @@ def test_get_cached_key(mock_sha1, mock__get_from_cache, oac_jwk):
 
     jwks = JWKS("baz")
 
-    assert jwks.get("foo") == oac_jwk.jwk
+    assert oac_jwk.jwk == jwks.get("foo")
 
 
 @patch("django_oac.models.JWKS._get_from_uri")
@@ -65,7 +67,7 @@ def test_get_non_cached_key(
 
     jwks = JWKS("baz")
 
-    assert jwks.get("foo") == oac_jwk.jwk
+    assert oac_jwk.jwk == jwks.get("foo")
 
 
 @patch("django_oac.models.JWKS._get_from_uri")

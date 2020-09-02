@@ -8,6 +8,7 @@ from django_oac.exceptions import ProviderResponseError
 from django_oac.middleware import OAuthClientMiddleware
 
 
+# pylint: disable=invalid-name
 def test_not_is_authenticated_user(rf, caplog, oac_mock_get_response):
     request = rf.get("foo")
     request.session = {
@@ -24,6 +25,7 @@ def test_not_is_authenticated_user(rf, caplog, oac_mock_get_response):
     assert not caplog.records
 
 
+# pylint: disable=invalid-name
 def test_user_without_token(rf, caplog, oac_mock_get_response):
     user = Mock()
     type(user).email = PropertyMock(return_value="spam@eggs")

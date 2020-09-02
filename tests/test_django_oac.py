@@ -5,10 +5,10 @@ from django_oac import __version__
 
 
 def test_version():
-    v = (
+    version = (
         load(settings.BASE_DIR / "pyproject.toml")
         .get("tool", {})
         .get("poetry", {})
         .get("version", "0.0.0")
     )
-    assert v == __version__
+    assert version == __version__

@@ -56,7 +56,7 @@ class JWTTestHelper(JWKTestHelper):
 
 @pytest.fixture
 def oac_mock_get_response() -> Mock:
-    def make_get_response(*args):
+    def make_get_response(_):
         get_response = Mock()
         get_response.return_value = None
         return get_response
