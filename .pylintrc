@@ -1,0 +1,7 @@
+[MASTER]
+load-plugins=pylint_django
+
+[FORMAT]
+disable=missing-docstring
+max-line-length = 88
+notes=

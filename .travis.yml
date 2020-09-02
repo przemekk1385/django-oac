@@ -17,4 +17,5 @@ script:
   - coveralls
   - black --check .
   - isort --check .
-  - flake8
+  - pylint django_oac
+  - pylint tests
