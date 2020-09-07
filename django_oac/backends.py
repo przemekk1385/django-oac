@@ -4,7 +4,7 @@ from urllib.parse import parse_qsl, urlparse
 import pendulum
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.handlers.wsgi import WSGIRequest
+from django.http.request import HttpRequest
 from django.utils import timezone
 
 from .exceptions import ExpiredStateError, MismatchingStateError, ProviderRequestError
@@ -39,7 +39,7 @@ class OAuthClientBackend:
         return user
 
     def authenticate(
-        self, request: WSGIRequest, username: str = None, password: str = None
+        self, request: HttpRequest, username: str = None, password: str = None
     ) -> Union[UserModel, None]:
         # pylint: disable=unused-argument
         request_uri = request.build_absolute_uri()

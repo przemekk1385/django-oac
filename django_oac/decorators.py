@@ -2,8 +2,8 @@ from functools import wraps
 from logging import LoggerAdapter, getLogger
 from typing import Callable
 
-from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
+from django.http.request import HttpRequest
 
 from .logger import get_extra
 
@@ -16,7 +16,7 @@ def _set_logger(scope: str, client_ip: str, state_str: str):
 
 def populate_view_logger(func) -> Callable:
     @wraps(func)
-    def wrapper_populate_view_logger(request: WSGIRequest) -> HttpResponse:
+    def wrapper_populate_view_logger(request: HttpRequest) -> HttpResponse:
         logger = _set_logger(
             f"{func.__module__.split('.')[-1]}.{func.__name__}",
             request.session.get("OAC_CLIENT_IP", "n/a"),
@@ -30,7 +30,7 @@ def populate_view_logger(func) -> Callable:
 def populate_method_logger(func) -> Callable:
     @wraps(func)
     def wrapper_populate_method_logger(
-        instance: object, request: WSGIRequest
+        instance: object, request: HttpRequest
     ) -> HttpResponse:
         logger = _set_logger(
             f"{func.__module__.split('.')[-1]}.{instance.__class__.__name__}",

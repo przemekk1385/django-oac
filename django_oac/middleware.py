@@ -2,7 +2,7 @@ from logging import Logger
 from typing import Callable, Type
 
 from django.contrib.auth import logout
-from django.core.handlers.wsgi import WSGIRequest
+from django.http.request import HttpRequest
 from django.http.response import HttpResponseBase
 
 from .decorators import populate_method_logger as populate_logger
@@ -15,7 +15,7 @@ class OAuthClientMiddleware:
         self.get_response = get_response
 
     @populate_logger
-    def __call__(self, request: WSGIRequest, logger: Logger) -> Type[HttpResponseBase]:
+    def __call__(self, request: HttpRequest, logger: Logger) -> Type[HttpResponseBase]:
         user = request.user
         if user.is_authenticated:
             token = user.token_set.last()

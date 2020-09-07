@@ -5,8 +5,8 @@ from uuid import uuid4
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, JsonResponse
+from django.http.request import HttpRequest
 from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
@@ -27,7 +27,7 @@ from .logger import get_extra
 
 
 @require_GET
-def authenticate_view(request: WSGIRequest) -> HttpResponse:
+def authenticate_view(request: HttpRequest) -> HttpResponse:
     state_str = uuid4().hex
     client_ip, _ = get_client_ip(request)
 
@@ -68,7 +68,7 @@ def authenticate_view(request: WSGIRequest) -> HttpResponse:
 
 @require_GET
 @populate_logger
-def callback_view(request: WSGIRequest, logger: Logger = None) -> HttpResponse:
+def callback_view(request: HttpRequest, logger: Logger = None) -> HttpResponse:
     logger.info("callback request")
 
     try:
@@ -129,7 +129,7 @@ def callback_view(request: WSGIRequest, logger: Logger = None) -> HttpResponse:
 @login_required(login_url=reverse_lazy("django_oac:authenticate"))
 @require_GET
 @populate_logger
-def logout_view(request: WSGIRequest, logger: Logger = None) -> HttpResponse:
+def logout_view(request: HttpRequest, logger: Logger = None) -> HttpResponse:
     logger.info("logout request")
 
     token = request.user.token_set.last()
@@ -168,7 +168,7 @@ def logout_view(request: WSGIRequest, logger: Logger = None) -> HttpResponse:
 
 
 @require_GET
-def profile_view(request: WSGIRequest) -> JsonResponse:
+def profile_view(request: HttpRequest) -> JsonResponse:
     return JsonResponse(
         {
             field: getattr(request.user, field, "")
