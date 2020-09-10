@@ -1,5 +1,6 @@
 from json.decoder import JSONDecodeError
 from logging import Logger, LoggerAdapter, getLogger
+from pathlib import Path
 from uuid import uuid4
 
 from django.conf import settings
@@ -16,6 +17,7 @@ from jwcrypto.common import JWException
 from jwt.exceptions import PyJWTError
 from requests.exceptions import RequestException
 
+from .apps import DjangoOACConfig
 from .decorators import populate_view_logger as populate_logger
 from .exceptions import (
     ExpiredStateError,
@@ -24,6 +26,8 @@ from .exceptions import (
     ProviderResponseError,
 )
 from .logger import get_extra
+
+TEMPLATES_DIR = Path(DjangoOACConfig.name)
 
 
 @require_GET
@@ -46,11 +50,11 @@ def authenticate_view(request: HttpRequest) -> HttpResponse:
     )
     logger.info("authentication request")
 
-    if not settings.OAC.get("authorize_uri"):
+    if settings.OAC.get("authorize_uri"):
         logger.error("missing 'authorize_uri'")
         ret = render(
             request,
-            "error.html",
+            TEMPLATES_DIR / "error.html",
             {"message": "App config is incomplete, cannot continue."},
             status=500,
         )
@@ -75,12 +79,17 @@ def callback_view(request: HttpRequest, logger: Logger = None) -> HttpResponse:
         user = authenticate(request)
     except ProviderRequestError as err:
         logger.error(f"raised django_oac.exceptions.ProviderRequestError: {err}")
-        ret = render(request, "error.html", {"message": "Bad request."}, status=400)
+        ret = render(
+            request,
+            TEMPLATES_DIR / "error.html",
+            {"message": "Bad request."},
+            status=400,
+        )
     except ExpiredStateError:
         logger.info("state expired")
         ret = render(
             request,
-            "error.html",
+            TEMPLATES_DIR / "error.html",
             {
                 "redirect": reverse("django_oac:authenticate"),
                 "message": "Logging attempt took too long, try again.",
@@ -91,7 +100,7 @@ def callback_view(request: HttpRequest, logger: Logger = None) -> HttpResponse:
         logger.error(f"configuration error, missing {err}")
         ret = render(
             request,
-            "error.html",
+            TEMPLATES_DIR / "error.html",
             {"message": "App config is incomplete, cannot continue."},
             status=500,
         )
@@ -109,7 +118,7 @@ def callback_view(request: HttpRequest, logger: Logger = None) -> HttpResponse:
         )
         ret = render(
             request,
-            "error.html",
+            TEMPLATES_DIR / "error.html",
             {"message": "Something went wrong, cannot continue."},
             status=500,
         )
@@ -119,7 +128,12 @@ def callback_view(request: HttpRequest, logger: Logger = None) -> HttpResponse:
             login(request, user, backend="django_oac.backends.OAuthClientBackend")
             ret = redirect("django_oac:profile")
         else:
-            ret = render(request, "error.html", {"message": "Forbidden."}, status=403)
+            ret = render(
+                request,
+                TEMPLATES_DIR / "error.html",
+                {"message": "Forbidden."},
+                status=403,
+            )
 
     request.session["OAC_STATE_TIMESTAMP"] = 0
 
@@ -142,7 +156,7 @@ def logout_view(request: HttpRequest, logger: Logger = None) -> HttpResponse:
             logger.error(f"configuration error, missing {err}")
             ret = render(
                 request,
-                "error.html",
+                TEMPLATES_DIR / "error.html",
                 {"message": "App config is incomplete, cannot continue."},
                 status=500,
             )
@@ -150,7 +164,7 @@ def logout_view(request: HttpRequest, logger: Logger = None) -> HttpResponse:
             logger.error(f"raised django_oac.exceptions.ProviderResponseError: {err}")
             ret = render(
                 request,
-                "error.html",
+                TEMPLATES_DIR / "error.html",
                 {"message": "Something went wrong, cannot continue."},
                 status=500,
             )
