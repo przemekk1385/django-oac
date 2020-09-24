@@ -201,6 +201,9 @@ class User:
     def get_from_id_token(id_token: str) -> UserModel:
         kid = jwt.get_unverified_header(id_token).get("kid", None)
         jwks = JWKS(oac_settings.JWKS_URI)
+        lookup_field = oac_settings.LOOKUP_FIELD
+        required_payload_fields = set(oac_settings.REQUIRED_PAYLOAD_FIELDS)
+        required_payload_fields.add(lookup_field)
 
         try:
             payload = jwt.decode(
@@ -218,9 +221,7 @@ class User:
                 algorithms=["RS256"],
             )
 
-        missing = _get_missing_keys(
-            {"first_name", "last_name", "email"}, payload.keys()
-        )
+        missing = _get_missing_keys(required_payload_fields, payload.keys())
         if missing:
             raise InsufficientPayloadError(
                 f"payload is missing required data: {missing}"
@@ -231,23 +232,21 @@ class User:
         #  class for creating user
 
         try:
-            user = UserModel.objects.get(email=payload.get("email"))
+            user = UserModel.objects.get(**{lookup_field: payload.get(lookup_field)})
         except UserModel.DoesNotExist:
             logger.info(
                 "created new user '%s'",
-                payload["email"],
+                payload[lookup_field],
                 extra=get_extra("models.User"),
             )
             user = UserModel.objects.create(
-                first_name=payload["first_name"],
-                last_name=payload["last_name"],
-                email=payload["email"],
                 username=payload.get("username", uuid4().hex),
+                **{field: payload[field] for field in required_payload_fields},
             )
         else:
             logger.info(
                 "matched existing user '%s'",
-                payload["email"],
+                payload[lookup_field],
                 extra=get_extra("models.User"),
             )
             if user.token_set.exists():

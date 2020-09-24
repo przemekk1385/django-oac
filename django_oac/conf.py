@@ -13,6 +13,8 @@ DEFAULTS = {
     "CLIENT_SECRET": None,
     "SCOPE": "openid",
     "STATE_EXPIRES_IN": 300,
+    "LOOKUP_FIELD": "email",
+    "REQUIRED_PAYLOAD_FIELDS": ("first_name", "last_name"),
 }
 
 
@@ -28,11 +30,14 @@ class OACSettings:
         if item not in self._default_settings:
             raise AttributeError(f"invalid setting '{item}'")
 
-        ret = (
-            getattr(self._project_settings, "OAC", {}).get(item)
-            or getattr(self._project_settings, "OAC", {}).get(item.lower())
-            or self._default_settings[item]
-        )
+        if item in ["LOOKUP_FIELD", "REQUIRED_PAYLOAD_FIELDS"]:  # not yet configurable
+            ret = self._default_settings[item]
+        else:
+            ret = (
+                getattr(self._project_settings, "OAC", {}).get(item)
+                or getattr(self._project_settings, "OAC", {}).get(item.lower())
+                or self._default_settings[item]
+            )
 
         if not ret and item in [
             key for key, value in self._default_settings.items() if value is None
