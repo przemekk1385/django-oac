@@ -5,7 +5,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.handlers.wsgi import WSGIRequest
 from django.shortcuts import reverse
 
-from django_oac.exceptions import ProviderResponseError
+from django_oac.exceptions import ConfigurationError, ProviderResponseError
 from django_oac.views import logout_view
 
 
@@ -16,7 +16,7 @@ def _logout(request: WSGIRequest):
 
 # pylint: disable=invalid-name
 @pytest.mark.parametrize(
-    "exception", [ProviderResponseError, KeyError],
+    "exception", [ConfigurationError, ProviderResponseError],
 )
 @patch("django_oac.views.logout")
 def test_logout_view_failure(mock_logout, exception, rf):

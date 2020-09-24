@@ -154,12 +154,11 @@ STATIC_URL = "/static/"
 # https://github.com/przemekk1385/django_oac
 
 OAC = {
-    "authorize_uri": "https://your.oauth.provider/authorize/",
-    "token_uri": "https://your.oauth.provider/token/",
-    "revoke_uri": "https://your.oauth.provider/revoke/",
-    "redirect_uri": "http://your.site/oac/callback/",
-    "jwks_uri": "https://your.oauth.provider/jwks/",
-    "client_id": load_env_var("OAC_CLIENT_ID"),
-    "client_secret": load_env_var("OAC_CLIENT_SECRET"),
-    # "scope": "openid",
+    "AUTHORIZE_URI": "https://your.oauth.provider/authorize/",
+    "TOKEN_URI": "https://your.oauth.provider/token/",
+    "REVOKE_URI": "https://your.oauth.provider/revoke/",
+    "REDIRECT_URI": "http://your.site/oac/callback/",
+    "JWKS_URI": "https://your.oauth.provider/jwks/",
+    "CLIENT_ID": load_env_var("OAC_CLIENT_ID"),
+    "CLIENT_SECRET": load_env_var("OAC_CLIENT_SECRET"),
 }

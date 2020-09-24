@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model
 from django.http.request import HttpRequest
 from django.utils import timezone
 
+from .conf import settings as oac_settings
 from .exceptions import ExpiredStateError, MismatchingStateError, ProviderRequestError
 from .models import Token, User
 
@@ -48,7 +49,7 @@ class OAuthClientBackend:
 
         code = self._parse_request_uri(request_uri, state_str)
 
-        state_expires_in = settings.OAC.get("state_expires_in", 300)
+        state_expires_in = oac_settings.STATE_EXPIRES_IN
         if state_expires_in is not None and timezone.now() >= pendulum.from_timestamp(
             state_timestamp + state_expires_in, tz=settings.TIME_ZONE
         ):

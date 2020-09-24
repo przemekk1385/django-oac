@@ -10,6 +10,7 @@ from jwt.exceptions import ExpiredSignatureError
 
 from django_oac.apps import DjangoOACConfig
 from django_oac.exceptions import (
+    ConfigurationError,
     ExpiredStateError,
     ProviderRequestError,
     ProviderResponseError,
@@ -50,20 +51,20 @@ def test_callback_view_failure_expired_state_error(
         (
             ProviderRequestError,
             "foo",
-            "raised django_oac.exceptions.ProviderRequestError",
+            "raised django_oac.exceptions.ProviderRequestError: foo",
             400,
         ),
-        (KeyError, "baz", "configuration error, missing 'baz'", 500),
+        (ConfigurationError, "bar", "bar", 500),
         (
             ProviderResponseError,
             "spam",
-            "raised django_oac.exceptions.ProviderResponseError",
+            "raised django_oac.exceptions.ProviderResponseError: spam",
             500,
         ),
         (
             ExpiredSignatureError,
             "eggs",
-            "raised jwt.exceptions.ExpiredSignatureError",
+            "raised jwt.exceptions.ExpiredSignatureError: eggs",
             500,
         ),
     ],
@@ -89,7 +90,7 @@ def test_callback_view_failure_other_exceptions(
     response = callback_view(request)
 
     assert response.status_code == expected_status_code
-    assert caplog.records[0].msg.startswith(expected_message)
+    assert caplog.records[0].msg == expected_message
 
 
 # pylint: disable=invalid-name

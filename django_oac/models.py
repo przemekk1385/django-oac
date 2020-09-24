@@ -6,7 +6,6 @@ from uuid import uuid4
 import jwt
 import pendulum
 import requests
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.db import models
@@ -14,6 +13,7 @@ from django.utils import timezone
 from jwcrypto.jwk import JWKSet
 from jwt.exceptions import InvalidSignatureError
 
+from .conf import settings as oac_settings
 from .exceptions import InsufficientPayloadError, ProviderResponseError
 from .logger import get_extra
 
@@ -33,15 +33,15 @@ class TokenRemoteManager:
     def _prepare_get_access_token_request_payload(code: str) -> dict:
         return {
             "grant_type": "authorization_code",
-            "client_id": settings.OAC.get("client_id", ""),
-            "client_secret": settings.OAC.get("client_secret", ""),
+            "client_id": oac_settings.CLIENT_ID,
+            "client_secret": oac_settings.CLIENT_SECRET,
             "code": code,
-            "redirect_uri": settings.OAC.get("redirect_uri", ""),
+            "redirect_uri": oac_settings.REDIRECT_URI,
         }
 
     def get(self, code: str) -> Tuple["Token", Union[str, None]]:
         response = requests.post(
-            settings.OAC["token_uri"],
+            oac_settings.TOKEN_URI,
             self._prepare_get_access_token_request_payload(code),
         )
 
@@ -98,16 +98,16 @@ class Token(models.Model):
         return {
             "grant_type": "refresh_token",
             "refresh_token": self.refresh_token,
-            "client_id": settings.OAC.get("client_id", ""),
-            "client_secret": settings.OAC.get("client_secret", ""),
+            "client_id": oac_settings.CLIENT_ID,
+            "client_secret": oac_settings.CLIENT_SECRET,
         }
 
     def _prepare_revoke_refresh_token_request_payload(self) -> dict:
         return {
             "token": self.refresh_token,
             "token_type_hint": "refresh_token",
-            "client_id": settings.OAC.get("client_id", ""),
-            "client_secret": settings.OAC.get("client_secret", ""),
+            "client_id": oac_settings.CLIENT_ID,
+            "client_secret": oac_settings.CLIENT_SECRET,
         }
 
     @property
@@ -118,7 +118,7 @@ class Token(models.Model):
 
     def refresh(self) -> None:
         response = requests.post(
-            settings.OAC["token_uri"],
+            oac_settings.TOKEN_URI,
             self._prepare_refresh_access_token_request_payload(),
         )
 
@@ -138,7 +138,7 @@ class Token(models.Model):
 
     def revoke(self) -> None:
         response = requests.post(
-            settings.OAC["revoke_uri"],
+            oac_settings.REVOKE_URI,
             self._prepare_revoke_refresh_token_request_payload(),
         )
 
@@ -200,12 +200,12 @@ class User:
     @staticmethod
     def get_from_id_token(id_token: str) -> UserModel:
         kid = jwt.get_unverified_header(id_token).get("kid", None)
-        jwks = JWKS(settings.OAC["jwks_uri"])
+        jwks = JWKS(oac_settings.JWKS_URI)
 
         try:
             payload = jwt.decode(
                 id_token,
-                audience=settings.OAC.get("client_id", ""),
+                audience=oac_settings.CLIENT_ID,
                 key=jwt.algorithms.RSAAlgorithm.from_jwk(jwks.get(kid)),
                 algorithms=["RS256"],
             )
@@ -213,7 +213,7 @@ class User:
             jwks.refresh()
             payload = jwt.decode(
                 id_token,
-                audience=settings.OAC.get("client_id", ""),
+                audience=oac_settings.CLIENT_ID,
                 key=jwt.algorithms.RSAAlgorithm.from_jwk(jwks.get(kid)),
                 algorithms=["RS256"],
             )

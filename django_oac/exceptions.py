@@ -3,6 +3,11 @@ class OACError(Exception):
     pass
 
 
+class ConfigurationError(OACError):
+
+    pass
+
+
 class ExpiredStateError(OACError):
 
     pass

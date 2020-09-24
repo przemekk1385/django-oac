@@ -15,13 +15,13 @@ Configuration is being kept in `OAC` dict in your project's settings.
 `settings.py`
 
     OAC = {
-        "authorize_uri": "https://your.oauth.provider/authorize/",
-        "token_uri": "https://your.oauth.provider/token/",
-        "revoke_uri": "https://your.oauth.provider/revoke/",
-        "redirect_uri": "http://your.site/oac/callback/",
-        "jwks_uri": "https://your.oauth.provider/jwks/",
-        "client_id": "your_client_id",
-        "client_secret": "your_client_secret",
+        "AUTHORIZE_URI": "https://your.oauth.provider/authorize/",
+        "TOKEN_URI": "https://your.oauth.provider/token/",
+        "REVOKE_URI": "https://your.oauth.provider/revoke/",
+        "REDIRECT_URI": "http://your.site/oac/callback/",
+        "JWKS_URI": "https://your.oauth.provider/jwks/",
+        "CLIENT_ID": "your_client_id",
+        "CLIENT_SECRET": "your_client_secret",
     }
 
 Besides that some additions must be made in the **Application definition** section.
@@ -68,4 +68,4 @@ Additional keys that can be set in OAC dict.
 
 |key|default value|description|
 |:---|:---|:---|
-|state_expires_in|300|state expiration time in seconds, set None to disable check|
+|STATE_EXPIRES_IN|300|state expiration time in seconds, set None to disable check|

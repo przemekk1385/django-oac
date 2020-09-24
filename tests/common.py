@@ -1,4 +1,4 @@
-from django.conf import settings
+from django_oac.conf import settings as oac_settings
 
 USER_PAYLOAD = {
     "first_name": "spam",
@@ -9,5 +9,5 @@ USER_PAYLOAD = {
 
 ID_TOKEN_PAYLOAD = {
     **USER_PAYLOAD,
-    "aud": settings.OAC["client_id"],
+    "aud": oac_settings.CLIENT_ID,
 }

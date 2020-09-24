@@ -3,7 +3,6 @@ from logging import Logger, LoggerAdapter, getLogger
 from pathlib import Path
 from uuid import uuid4
 
-from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
@@ -18,8 +17,10 @@ from jwt.exceptions import PyJWTError
 from requests.exceptions import RequestException
 
 from .apps import DjangoOACConfig
+from .conf import settings as oac_settings
 from .decorators import populate_view_logger as populate_logger
 from .exceptions import (
+    ConfigurationError,
     ExpiredStateError,
     OACError,
     ProviderRequestError,
@@ -50,22 +51,22 @@ def authenticate_view(request: HttpRequest) -> HttpResponse:
     )
     logger.info("authentication request")
 
-    if settings.OAC.get("authorize_uri"):
-        logger.error("missing 'authorize_uri'")
+    try:
+        ret = redirect(
+            f"{oac_settings.AUTHORIZE_URI}"
+            f"?scope=openid"
+            f"&client_id={oac_settings.CLIENT_ID}"
+            f"&redirect_uri={oac_settings.REDIRECT_URI}"
+            f"&state={state_str}"
+            "&response_type=code"
+        )
+    except ConfigurationError as err:
+        logger.error(str(err))
         ret = render(
             request,
             TEMPLATES_DIR / "error.html",
             {"message": "App config is incomplete, cannot continue."},
             status=500,
-        )
-    else:
-        ret = redirect(
-            f"{settings.OAC['authorize_uri']}"
-            f"?scope={settings.OAC.get('scope', 'openid')}"
-            f"&client_id={settings.OAC.get('client_id', '')}"
-            f"&redirect_uri={settings.OAC.get('redirect_uri', '')}"
-            f"&state={state_str}"
-            "&response_type=code"
         )
     return ret
 
@@ -77,6 +78,14 @@ def callback_view(request: HttpRequest, logger: Logger = None) -> HttpResponse:
 
     try:
         user = authenticate(request)
+    except ConfigurationError as err:
+        logger.error(str(err))
+        ret = render(
+            request,
+            TEMPLATES_DIR / "error.html",
+            {"message": "App config is incomplete, cannot continue."},
+            status=500,
+        )
     except ProviderRequestError as err:
         logger.error(f"raised django_oac.exceptions.ProviderRequestError: {err}")
         ret = render(
@@ -95,14 +104,6 @@ def callback_view(request: HttpRequest, logger: Logger = None) -> HttpResponse:
                 "message": "Logging attempt took too long, try again.",
             },
             status=400,
-        )
-    except KeyError as err:
-        logger.error(f"configuration error, missing {err}")
-        ret = render(
-            request,
-            TEMPLATES_DIR / "error.html",
-            {"message": "App config is incomplete, cannot continue."},
-            status=500,
         )
     except (
         JSONDecodeError,
@@ -152,8 +153,8 @@ def logout_view(request: HttpRequest, logger: Logger = None) -> HttpResponse:
     if token:
         try:
             token.revoke()
-        except KeyError as err:
-            logger.error(f"configuration error, missing {err}")
+        except ConfigurationError as err:
+            logger.error(str(err))
             ret = render(
                 request,
                 TEMPLATES_DIR / "error.html",

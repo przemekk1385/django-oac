@@ -127,10 +127,11 @@ STATIC_URL = "/static/"
 # https://url.to.docs/
 
 OAC = {
-    "authorize_uri": "https://your.oauth.provider/authorize/",
-    "token_uri": "https://your.oauth.provider/token/",
-    "revoke_uri": "https://your.oauth.provider/revoke/",
-    "redirect_uri": "http://your.site/oac/callback/",
-    "jwks_uri": "https://your.oauth.provider/jwks/",
-    "client_id": "foo-bar-baz",
+    "AUTHORIZE_URI": "https://your.oauth.provider/authorize/",
+    "TOKEN_URI": "https://your.oauth.provider/token/",
+    "REVOKE_URI": "https://your.oauth.provider/revoke/",
+    "REDIRECT_URI": "http://your.site/oac/callback/",
+    "JWKS_URI": "https://your.oauth.provider/jwks/",
+    "CLIENT_ID": "foo-bar-baz",
+    "CLIENT_SECRET": "spam-eggs",
 }
