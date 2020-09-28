@@ -1,5 +1,5 @@
 import json
-from unittest.mock import Mock, patch, PropertyMock
+from unittest.mock import Mock, PropertyMock, patch
 
 import pytest
 from django.contrib.auth import get_user_model
