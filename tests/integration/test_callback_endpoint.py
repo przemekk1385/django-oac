@@ -9,8 +9,9 @@ from ..common import ID_TOKEN_PAYLOAD, USER_PAYLOAD
 
 
 @pytest.mark.django_db
+@patch("django_oac.stores.requests")
 @patch("django_oac.models.requests")
-def test_callback_endpoint(mock_requests, client, oac_jwt):
+def test_callback_endpoint(mock_models_requests, mock_stores_requests, client, oac_jwt):
     session = client.session
     session["OAC_STATE_STR"] = "test"
     session["OAC_STATE_TIMESTAMP"] = timezone.now().timestamp() - 240
@@ -33,8 +34,8 @@ def test_callback_endpoint(mock_requests, client, oac_jwt):
     type(mock_get_response).status_code = PropertyMock(return_value=200)
     type(mock_get_response).content = PropertyMock(return_value=oac_jwt.jwk_set)
 
-    mock_requests.post.return_value = mock_post_response
-    mock_requests.get.return_value = mock_get_response
+    mock_models_requests.post.return_value = mock_post_response
+    mock_stores_requests.get.return_value = mock_get_response
 
     response = client.get(
         reverse("django_oac:callback"), {"state": "test", "code": "foo"}, follow=True,

@@ -1,30 +1,18 @@
-from hashlib import sha1
 from logging import getLogger
 from typing import Tuple, Union
-from uuid import uuid4
 
-import jwt
 import pendulum
 import requests
 from django.contrib.auth import get_user_model
-from django.core.cache import cache
 from django.db import models
 from django.utils import timezone
-from jwcrypto.jwk import JWKSet
-from jwt.exceptions import InvalidSignatureError
 
 from .conf import settings as oac_settings
-from .exceptions import InsufficientPayloadError, ProviderResponseError
-from .logger import get_extra
+from .exceptions import ProviderResponseError
+from .helpers import get_missing_keys
 
 UserModel = get_user_model()
 logger = getLogger(__package__)
-
-
-def _get_missing_keys(required: set, given: Union[list, set, tuple]) -> str:
-    return ", ".join(
-        reversed(list(map(lambda key: f"'{key}'", required.difference(given))))
-    )
 
 
 # pylint: disable=too-few-public-methods
@@ -56,7 +44,7 @@ class TokenRemoteManager:
 
         json_dict = response.json()
 
-        missing = _get_missing_keys(
+        missing = get_missing_keys(
             {"access_token", "refresh_token", "expires_in", "id_token"},
             json_dict.keys(),
         )
@@ -147,109 +135,3 @@ class Token(models.Model):
                 "revoke refresh token request failed,"
                 f" provider responded with code {response.status_code}",
             )
-
-
-class JWKS:
-
-    __slots__ = ("_key", "_uri")
-
-    def __init__(self, uri: str) -> None:
-        self._key = sha1(uri.encode("utf-8")).hexdigest()
-        self._uri = uri
-
-    def _get_from_cache(self) -> JWKSet:
-        ret = cache.get(self._key)
-        logger.info(
-            "found cached JWKS cached for '%s'",
-            self._uri,
-            extra=get_extra("models.JWKS"),
-        )
-
-        return ret
-
-    def _get_from_uri(self) -> JWKSet:
-        response = requests.get(self._uri)
-
-        if response.status_code != 200:
-            raise ProviderResponseError(
-                "jwks request failed,"
-                f" provider responded with code {response.status_code}"
-            )
-
-        cache.set(self._key, response.content)
-        logger.info(
-            "JWKS for '%s' saved in cache", self._uri, extra=get_extra("models.JWKS"),
-        )
-
-        return response.content
-
-    @property
-    def _jwk_set(self) -> JWKSet:
-        return JWKSet.from_json(self._get_from_cache() or self._get_from_uri())
-
-    def get(self, kid: str) -> str:
-        key = self._jwk_set.get_key(kid)
-        return key.export() if key else ""
-
-    def refresh(self) -> None:
-        self._get_from_uri()
-
-
-# pylint: disable=too-few-public-methods
-class User:
-    @staticmethod
-    def get_from_id_token(id_token: str) -> UserModel:
-        kid = jwt.get_unverified_header(id_token).get("kid", None)
-        jwks = JWKS(oac_settings.JWKS_URI)
-        lookup_field = oac_settings.LOOKUP_FIELD
-        required_payload_fields = set(oac_settings.REQUIRED_PAYLOAD_FIELDS)
-        required_payload_fields.add(lookup_field)
-
-        try:
-            payload = jwt.decode(
-                id_token,
-                audience=oac_settings.CLIENT_ID,
-                key=jwt.algorithms.RSAAlgorithm.from_jwk(jwks.get(kid)),
-                algorithms=["RS256"],
-            )
-        except InvalidSignatureError:
-            jwks.refresh()
-            payload = jwt.decode(
-                id_token,
-                audience=oac_settings.CLIENT_ID,
-                key=jwt.algorithms.RSAAlgorithm.from_jwk(jwks.get(kid)),
-                algorithms=["RS256"],
-            )
-
-        missing = _get_missing_keys(required_payload_fields, payload.keys())
-        if missing:
-            raise InsufficientPayloadError(
-                f"payload is missing required data: {missing}"
-            )
-
-        # TODO:
-        #  configurable lookup field
-        #  class for creating user
-
-        try:
-            user = UserModel.objects.get(**{lookup_field: payload.get(lookup_field)})
-        except UserModel.DoesNotExist:
-            logger.info(
-                "created new user '%s'",
-                payload[lookup_field],
-                extra=get_extra("models.User"),
-            )
-            user = UserModel.objects.create(
-                username=payload.get("username", uuid4().hex),
-                **{field: payload[field] for field in required_payload_fields},
-            )
-        else:
-            logger.info(
-                "matched existing user '%s'",
-                payload[lookup_field],
-                extra=get_extra("models.User"),
-            )
-            if user.token_set.exists():
-                user.token_set.all().delete()
-
-        return user

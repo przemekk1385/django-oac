@@ -16,33 +16,6 @@ from django_oac.exceptions import (
 UserModel = get_user_model()
 
 
-# pylint: disable=protected-access
-@pytest.mark.parametrize(
-    "request_uri,state_str,expected_exception",
-    [
-        ("https://example.com/oac/callback/?code=foo", "test", ProviderRequestError),
-        (
-            "https://example.com/oac/callback/?code=foo&state=bar",
-            "baz",
-            MismatchingStateError,
-        ),
-    ],
-)
-def test__parse_request_uri_method_failure(request_uri, state_str, expected_exception):
-    with pytest.raises(expected_exception):
-        OAuthClientBackend._parse_request_uri(request_uri, state_str)
-
-
-# pylint: disable=protected-access
-def test__parse_request_uri_method_succeeded():
-    assert (
-        OAuthClientBackend._parse_request_uri(
-            "https://example.com/oac/callback/?code=foo&state=test", "test"
-        )
-        == "foo"
-    )
-
-
 @pytest.mark.django_db
 def test_get_user_does_not_exist():
     assert not OAuthClientBackend.get_user(999)
@@ -58,10 +31,39 @@ def test_get_user_succeeded():
 
 
 # pylint: disable=invalid-name, protected-access
-@patch("django_oac.backends.OAuthClientBackend._parse_request_uri")
-def test_authenticate_failure(mock__parse_request_uri, rf):
-    mock__parse_request_uri.return_value = "foo"
+def test_authenticate_provider_request_error(rf):
+    request = rf.get(reverse("django_oac:authenticate"), {"state": "test"})
+    request.session = {
+        "OAC_STATE_STR": "test",
+        "OAC_STATE_TIMESTAMP": timezone.now().timestamp(),
+        "OAC_CLIENT_IP": "127.0.0.1",
+    }
 
+    backend = OAuthClientBackend()
+
+    with pytest.raises(ProviderRequestError):
+        backend.authenticate(request)
+
+
+# pylint: disable=invalid-name, protected-access
+def test_authenticate_mismatching_state_error(rf):
+    request = rf.get(
+        reverse("django_oac:authenticate"), {"code": "foo", "state": "bar"}
+    )
+    request.session = {
+        "OAC_STATE_STR": "test",
+        "OAC_STATE_TIMESTAMP": timezone.now().timestamp(),
+        "OAC_CLIENT_IP": "127.0.0.1",
+    }
+
+    backend = OAuthClientBackend()
+
+    with pytest.raises(MismatchingStateError):
+        backend.authenticate(request)
+
+
+# pylint: disable=invalid-name, protected-access
+def test_authenticate_expired_state_error(rf):
     request = rf.get(
         reverse("django_oac:authenticate"), {"code": "foo", "state": "test"}
     )
@@ -77,16 +79,21 @@ def test_authenticate_failure(mock__parse_request_uri, rf):
 
 
 # pylint: disable=invalid-name, protected-access
-@patch("django_oac.backends.User")
+@patch("django_oac.backends.JWTPayloadStore")
 @patch("django_oac.backends.Token")
-@patch("django_oac.backends.OAuthClientBackend._parse_request_uri")
-def test_authenticate_succeeded(mock__parse_request_uri, mock_token, mock_user, rf):
+@patch("django_oac.backends.UserModel")
+def test_authenticate_succeeded(
+    mock_user_model, mock_token, mock_jwt_payload_store, rf
+):
     user = Mock()
     type(user).email = PropertyMock(return_value="spam@eggs")
 
-    mock__parse_request_uri.return_value = "foo"
-    mock_token.remote.get.return_value = Mock(), "foo"
-    mock_user.get_from_id_token.return_value = user
+    jwt_payload_store = Mock()
+    jwt_payload_store.return_value = {}
+
+    mock_token.remote.get.return_value = Mock(), "bar"
+    mock_jwt_payload_store.get.return_value = jwt_payload_store
+    mock_user_model.objects.get.return_value = user
 
     request = rf.get(
         reverse("django_oac:authenticate"), {"code": "foo", "state": "test"}

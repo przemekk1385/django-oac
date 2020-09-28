@@ -18,6 +18,11 @@ class InsufficientPayloadError(OACError):
     pass
 
 
+class KeyNotFoundError(OACError):
+
+    pass
+
+
 class MismatchingStateError(OACError):
 
     pass
