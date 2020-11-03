@@ -111,6 +111,8 @@ class JWTPayloadStore(DataStore):
             "audience": oac_settings.CLIENT_ID,
             "key": jwt.algorithms.RSAAlgorithm.from_jwk(self._jwk_store.get(kid)),
             "algorithms": ["RS256"],
+            "leeway": 30,
+            # "options": {"verify_nbf": False},
         }
         try:
             ret = jwt.decode(id_token, **kwargs,)
