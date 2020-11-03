@@ -32,11 +32,11 @@ def settings_oac_keys_check(app_configs, **kwargs):
     errors = []
     if hasattr(settings, "OAC") and isinstance(settings.OAC, dict):
         for key in {
-            "authorize_uri",
-            "token_uri",
-            "revoke_uri",
-            "redirect_uri",
-            "jwks_uri",
+            "AUTHORIZE_URI",
+            "TOKEN_URI",
+            "REVOKE_URI",
+            "REDIRECT_URI",
+            "JWKS_URI",
         }.difference(settings.OAC.keys()):
             errors.append(
                 Error(
