@@ -64,7 +64,7 @@ def authenticate_view(request: HttpRequest) -> HttpResponse:
         logger.error(str(err))
         ret = render(
             request,
-            TEMPLATES_DIR / "error.html",
+            TEMPLATES_DIR / "500.html",
             {"message": "App config is incomplete, cannot continue."},
             status=500,
         )
