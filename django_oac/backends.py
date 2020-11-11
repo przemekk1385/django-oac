@@ -105,7 +105,7 @@ class OAuthClientBackend:
             )
         else:
             logger.info(
-                "matched existing user '%s'", user_payload[lookup_field],
+                "matched existing user '%s'", user.email,
             )
             if user.token_set.exists():
                 user.token_set.all().delete()
