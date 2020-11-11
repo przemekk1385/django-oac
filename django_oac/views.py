@@ -119,8 +119,8 @@ def callback_view(request: HttpRequest, logger: Logger = None) -> HttpResponse:
         )
         ret = render(
             request,
-            TEMPLATES_DIR / "error.html",
-            {"message": "Something went wrong, cannot continue."},
+            TEMPLATES_DIR / "500.html",
+            {"error_message": "Something went wrong, cannot continue."},
             status=500,
         )
     else:
@@ -129,10 +129,11 @@ def callback_view(request: HttpRequest, logger: Logger = None) -> HttpResponse:
             login(request, user, backend="django_oac.backends.OAuthClientBackend")
             ret = redirect("django_oac:profile")
         else:
+            logger.info("login forbidden")
             ret = render(
                 request,
-                TEMPLATES_DIR / "error.html",
-                {"message": "Forbidden."},
+                TEMPLATES_DIR / "403.html",
+                {"message": "OAuth is forbidden, try another login method."},
                 status=403,
             )
 
