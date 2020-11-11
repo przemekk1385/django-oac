@@ -141,9 +141,9 @@ def callback_view(request: HttpRequest, logger: Logger = None) -> HttpResponse:
     return ret
 
 
+@populate_logger
 @login_required(login_url=reverse_lazy("django_oac:authenticate"))
 @require_GET
-@populate_logger
 def logout_view(request: HttpRequest, logger: Logger = None) -> HttpResponse:
     logger.info("logout request")
 
@@ -157,7 +157,7 @@ def logout_view(request: HttpRequest, logger: Logger = None) -> HttpResponse:
             logger.error(str(err))
             ret = render(
                 request,
-                TEMPLATES_DIR / "error.html",
+                TEMPLATES_DIR / "500.html",
                 {"message": "App config is incomplete, cannot continue."},
                 status=500,
             )
@@ -165,7 +165,7 @@ def logout_view(request: HttpRequest, logger: Logger = None) -> HttpResponse:
             logger.error(f"raised django_oac.exceptions.ProviderResponseError: {err}")
             ret = render(
                 request,
-                TEMPLATES_DIR / "error.html",
+                TEMPLATES_DIR / "500.html",
                 {"message": "Something went wrong, cannot continue."},
                 status=500,
             )
