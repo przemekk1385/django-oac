@@ -7,5 +7,6 @@ omit =
     django_oac/apps.py
     django_oac/checks.py
 exclude_lines =
+    @abstractmethod
     def __repr__
     def __str__
