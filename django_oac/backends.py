@@ -1,15 +1,14 @@
 from logging import LoggerAdapter, getLogger
 from typing import Union
-from uuid import uuid4
 
 from django.contrib.auth import get_user_model
 from django.http.request import HttpRequest
 
 from .conf import settings as oac_settings
 from .logger import get_extra
-from .models import Token
-from .stores import JWTPayloadStore
+from .models_providers.token_provider import TokenProviderBase
 
+TokenProvider = oac_settings.TOKEN_PROVIDER_CLASS
 UserModel = get_user_model()
 
 
@@ -29,6 +28,7 @@ class OAuthClientBackend:
         username: str = None,
         password: str = None,
         code: str = None,
+        token_provider: TokenProviderBase = TokenProvider(),
     ) -> Union[UserModel, None]:
         # pylint: disable=unused-argument
 
@@ -41,38 +41,6 @@ class OAuthClientBackend:
             ),
         )
 
-        token, id_token = Token.remote.get(code)
+        token = token_provider.create(code)
 
-        lookup_field = oac_settings.LOOKUP_FIELD
-        required_payload_fields = set(oac_settings.REQUIRED_PAYLOAD_FIELDS)
-        required_payload_fields.add(lookup_field)
-
-        user_payload_store = JWTPayloadStore(required_payload_fields)
-        user_payload = user_payload_store.get(id_token)
-
-        # TODO:
-        #  class for creating user
-
-        try:
-            user = UserModel.objects.get(
-                **{lookup_field: user_payload.get(lookup_field)}
-            )
-        except UserModel.DoesNotExist:
-            logger.info(
-                "created new user '%s'", user_payload[lookup_field],
-            )
-            user = UserModel.objects.create(
-                username=user_payload.get("username", uuid4().hex),
-                **{field: user_payload[field] for field in required_payload_fields},
-            )
-        else:
-            logger.info(
-                "matched existing user '%s'", user.email,
-            )
-            if user.token_set.exists():
-                user.token_set.all().delete()
-
-        token.user = user
-        token.save()
-
-        return user
+        return token.user
