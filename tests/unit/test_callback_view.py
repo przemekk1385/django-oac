@@ -1,5 +1,5 @@
 import logging
-from unittest.mock import Mock, PropertyMock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 from django.contrib.auth import get_user_model
@@ -63,7 +63,7 @@ def test_callback_view_user_authenticated(
     mock_authenticate, mock_login, oac_valid_get_request
 ):
     user = Mock()
-    type(user).email = PropertyMock(return_value="spam@eggs")
+    type(user).email = "spam@eggs"
 
     mock_authenticate.return_value = user
     mock_login.return_value = None

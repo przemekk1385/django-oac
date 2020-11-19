@@ -1,7 +1,12 @@
 import pytest
 
-from django_oac.conf import DEFAULTS, OACSettings
+from django_oac.conf import DEFAULTS, OACSettings, import_from_string
 from django_oac.exceptions import ConfigurationError
+
+
+def test_import_from_string_error():
+    with pytest.raises(ImportError):
+        import_from_string("foo.bar.baz", "FOO")
 
 
 def test_invalid_setting(settings):
