@@ -23,10 +23,10 @@ class JWKTestHelper:
         return self._jwk.export_public()
 
     @property
-    def jwk_set(self) -> str:
-        jwk_set = JWKSet()
-        jwk_set.add(self._jwk)
-        return jwk_set.export(private_keys=False)
+    def jwks(self) -> str:
+        jwks = JWKSet()
+        jwks.add(self._jwk)
+        return jwks.export(private_keys=False)
 
     @property
     def kid(self) -> str:
