@@ -17,7 +17,7 @@ def test_fetch_succeeded(mock_requests, oac_jwk):
     mock_requests.get.return_value = response
 
     service = OAuthJWKSService()
-    jwk, jwks = service.fetch("foo", "bar")
+    jwk, jwks = service.fetch("foo", jwks_uri="bar")
 
     assert jwk == oac_jwk.jwk
     assert jwks
@@ -48,4 +48,4 @@ def test_save():
     service = OAuthJWKSService()
 
     with pytest.raises(NotImplementedError):
-        service.save()
+        service.save("foo")

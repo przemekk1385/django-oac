@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from logging import getLogger
 
 from django.contrib.auth import get_user_model
-from django.db.models import Model
 from django.utils import timezone
 
 from ..conf import settings as oac_settings
@@ -21,15 +20,15 @@ class TokenProviderBase(ABC):
     __slots__ = ()
 
     @abstractmethod
-    def create(self, *args, **kwargs) -> Model:
+    def create(self, code: str, user_provider: UserProviderBase) -> Token:
         pass
 
     @abstractmethod
-    def refresh(self, *args, **kwargs) -> None:
+    def refresh(self, instance: Token) -> None:
         pass
 
     @abstractmethod
-    def revoke(self, *args, **kwargs) -> None:
+    def revoke(self, instance: Token) -> None:
         pass
 
 
@@ -48,8 +47,6 @@ class DefaultTokenProvider(TokenProviderBase):
         data = self._oauth_request_service.get_access_token(code)
 
         id_token = data.pop("id_token", "")
-
-        print(data)
 
         user, created = user_provider.get_or_create(id_token)
 

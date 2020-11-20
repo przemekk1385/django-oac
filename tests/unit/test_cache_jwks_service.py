@@ -8,7 +8,7 @@ def test_fetch(oac_jwk):
     cache.set("bar", oac_jwk.jwks)
 
     service = CacheJWKSService()
-    jwk, jwks = service.fetch("foo", "bar")
+    jwk, jwks = service.fetch("foo", cache_key="bar")
 
     assert jwk == oac_jwk.jwk
     assert jwks
@@ -25,6 +25,6 @@ def test_clear():
 
 def test_save():
     service = CacheJWKSService()
-    service.save("foo", "bar")
+    service.save("foo", cache_key="bar")
 
     assert cache.get("bar") == "foo"

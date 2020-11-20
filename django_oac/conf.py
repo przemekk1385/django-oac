@@ -31,18 +31,24 @@ IMPORT_STRINGS = (
 
 ALLOWED_NONES = ("STATE_EXPIRES_IN",)
 
-app_name = DjangoOACConfig.name
-app_verbose_name = DjangoOACConfig.verbose_name
+APP_NAME = DjangoOACConfig.name
+APP_VERBOSE_NAME = DjangoOACConfig.verbose_name
 
 
 def import_from_string(dotted_path, setting_name):
     try:
         return import_string(dotted_path)
-    except ImportError as e:
+    except ImportError as e_info:
         raise ImportError(
             "Could not import '%s' for %s setting '%s'. %s: %s."
-            % (dotted_path, app_verbose_name, setting_name, e.__class__.__name__, e)
-        )
+            % (
+                dotted_path,
+                APP_VERBOSE_NAME,
+                setting_name,
+                e_info.__class__.__name__,
+                e_info,
+            )
+        ) from e_info
 
 
 # pylint: disable=too-few-public-methods

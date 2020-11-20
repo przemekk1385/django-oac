@@ -1,4 +1,3 @@
-from datetime import datetime
 from logging import getLogger
 
 import pendulum

@@ -17,16 +17,25 @@ class OAuthRequestServiceBase(ABC):
 
     __slots__ = ()
 
+    @staticmethod
     @abstractmethod
-    def get_access_token(self, *args, **kwargs) -> dict:
+    def get_access_token(
+        code: str, client_id: str, client_secret: str, redirect_uri: str, token_uri: str
+    ) -> dict:
         pass
 
+    @staticmethod
     @abstractmethod
-    def refresh_access_token(self, *args, **kwargs) -> dict:
+    def refresh_access_token(
+        refresh_token: str, client_id: str, client_secret: str, token_uri: str,
+    ) -> dict:
         pass
 
+    @staticmethod
     @abstractmethod
-    def revoke_refresh_token(self, *args, **kwargs) -> None:
+    def revoke_refresh_token(
+        refresh_token: str, client_id: str, client_secret: str, revoke_uri: str,
+    ) -> None:
         pass
 
 
@@ -122,19 +131,27 @@ class JWKSServiceBase(ABC):
 
     __slots__ = ()
 
-    @abstractmethod
-    def clear(self, *args, **kwargs) -> None:
-        pass
-
-    def fetch(self, kid: str, jwks_json: str) -> Tuple[str, str]:
+    @staticmethod
+    def get_key(kid: str, jwks_json: str) -> Tuple[str, str]:
         jwk = None
         if jwks_json:
             jwk = JWKSet.from_json(jwks_json).get_key(kid).export_public()
 
         return jwk, jwks_json
 
+    @staticmethod
     @abstractmethod
-    def save(self, *args, **kwargs) -> None:
+    def clear() -> None:
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def fetch(kid: str, **kwargs):
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def save(jwks: str, **kwargs) -> None:
         pass
 
 
@@ -144,25 +161,29 @@ class CacheJWKSService(JWKSServiceBase):
         cache.clear()
 
     @staticmethod
-    def fetch(kid: str, cache_key: str = CACHE_KEY, *args, **kwargs) -> Tuple[str, str]:
-        return super(CacheJWKSService, CacheJWKSService).fetch(
-            None, kid, cache.get(cache_key)
+    def fetch(kid: str, **kwargs) -> Tuple[str, str]:
+        cache_key = kwargs.get("cache_key") or CACHE_KEY
+
+        return super(CacheJWKSService, CacheJWKSService).get_key(
+            kid, cache.get(cache_key)
         )
 
     @staticmethod
-    def save(jwks: str, cache_key: str = CACHE_KEY) -> None:
+    def save(jwks: str, **kwargs) -> None:
+        cache_key = kwargs.get("cache_key") or CACHE_KEY
+
         cache.set(cache_key, jwks)
 
 
 class OAuthJWKSService(JWKSServiceBase):
     @staticmethod
     def clear() -> None:
-        raise NotImplementedError(f"cannot use 'clear' on OAuthJWKSService")
+        raise NotImplementedError("cannot use 'clear' on OAuthJWKSService")
 
     @staticmethod
-    def fetch(
-        kid: str, jwks_uri: str = oac_settings.JWKS_URI, *args, **kwargs
-    ) -> Tuple[str, str]:
+    def fetch(kid: str, **kwargs) -> Tuple[str, str]:
+        jwks_uri = kwargs.get("jwks_uri") or oac_settings.JWKS_URI
+
         response = requests.get(jwks_uri)
 
         if response.status_code != 200:
@@ -171,10 +192,8 @@ class OAuthJWKSService(JWKSServiceBase):
                 f" provider responded with code {response.status_code}"
             )
 
-        return super(OAuthJWKSService, OAuthJWKSService).fetch(
-            None, kid, response.content
-        )
+        return super(OAuthJWKSService, OAuthJWKSService).get_key(kid, response.content)
 
     @staticmethod
-    def save() -> None:
-        raise NotImplementedError(f"cannot use 'save' on OAuthJWKSService")
+    def save(jwks: str, **kwargs) -> None:
+        raise NotImplementedError("cannot use 'save' on OAuthJWKSService")

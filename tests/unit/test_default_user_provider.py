@@ -26,8 +26,8 @@ def test_get_or_create_new_user_cached_jwks(oac_jwt):
     user, created = provider.get_or_create(
         oac_jwt.id_token,
         lookup_field="email",
-        cache_jwks_service=mock_jwks_service,
-        oauth_jwks_service=mock_jwks_service,
+        fetch_from_services=[mock_jwks_service, mock_jwks_service],
+        save_by_service=mock_jwks_service,
     )
 
     assert created
@@ -49,8 +49,8 @@ def test_get_or_create_new_user_remote_jwks(oac_jwt):
     user, created = provider.get_or_create(
         oac_jwt.id_token,
         lookup_field="email",
-        cache_jwks_service=mock_jwks_service,
-        oauth_jwks_service=mock_jwks_service,
+        fetch_from_services=[mock_jwks_service, mock_jwks_service],
+        save_by_service=mock_jwks_service,
     )
 
     assert created
@@ -82,8 +82,8 @@ def test_get_or_create_new_user_invalid_cached_jwks(oac_jwt):
     user, created = provider.get_or_create(
         id_token,
         lookup_field="email",
-        cache_jwks_service=mock_jwks_service,
-        oauth_jwks_service=mock_jwks_service,
+        fetch_from_services=[mock_jwks_service, mock_jwks_service],
+        save_by_service=mock_jwks_service,
     )
 
     assert created
@@ -114,8 +114,8 @@ def test_get_or_create_new_user_invalid_signature_error(oac_jwt):
         provider.get_or_create(
             id_token,
             lookup_field="email",
-            cache_jwks_service=mock_jwks_service,
-            oauth_jwks_service=mock_jwks_service,
+            fetch_from_services=[mock_jwks_service, mock_jwks_service],
+            save_by_service=mock_jwks_service,
         )
 
 
@@ -136,14 +136,14 @@ def test_get_or_create_new_user_insufficient_payload_error(oac_jwt):
         provider.get_or_create(
             oac_jwt.id_token,
             lookup_field="email",
-            cache_jwks_service=mock_jwks_service,
-            oauth_jwks_service=mock_jwks_service,
+            fetch_from_services=[mock_jwks_service, mock_jwks_service],
+            save_by_service=mock_jwks_service,
         )
 
 
 @pytest.mark.django_db
 def test_get_or_create_existing_user(oac_jwt):
-    user = UserModel.objects.create(**USER_PAYLOAD)
+    UserModel.objects.create(**USER_PAYLOAD)
 
     oac_jwt.kid = "foo"
     oac_jwt.id_token = ID_TOKEN_PAYLOAD
@@ -156,8 +156,8 @@ def test_get_or_create_existing_user(oac_jwt):
     user, created = provider.get_or_create(
         oac_jwt.id_token,
         lookup_field="email",
-        cache_jwks_service=mock_jwks_service,
-        oauth_jwks_service=mock_jwks_service,
+        fetch_from_services=[mock_jwks_service, mock_jwks_service],
+        save_by_service=mock_jwks_service,
     )
 
     assert not created
@@ -183,6 +183,6 @@ def test_get_or_create_no_jwk_and_jwks(oac_jwt):
         provider.get_or_create(
             oac_jwt.id_token,
             lookup_field="email",
-            cache_jwks_service=mock_jwks_service,
-            oauth_jwks_service=mock_jwks_service,
+            fetch_from_services=[mock_jwks_service, mock_jwks_service],
+            save_by_service=mock_jwks_service,
         )

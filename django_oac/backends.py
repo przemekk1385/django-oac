@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.http.request import HttpRequest
 
 from .conf import settings as oac_settings
+from .exceptions import NoUserError
 from .logger import get_extra
 from .models_providers.token_provider import TokenProviderBase
 
@@ -40,7 +41,13 @@ class OAuthClientBackend:
                 request.session["OAC_STATE_STR"],
             ),
         )
+        try:
+            token = token_provider.create(code)
+        except NoUserError as e_info:
+            logger.info(f"raised django_oac.exceptions.NoUserError: {e_info}")
+            return None
+        else:
+            user = token.user
 
-        token = token_provider.create(code)
-
-        return token.user
+            logger.info(f"user '{user}' authenticated")
+            return user

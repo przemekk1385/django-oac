@@ -70,11 +70,11 @@ def authenticate_view(request: HttpRequest) -> HttpResponse:
     return ret
 
 
-@validate_state_expiration
-@validate_state_matching
-@validate_query_string
-@populate_logger
 @require_GET
+@populate_logger
+@validate_query_string
+@validate_state_matching
+@validate_state_expiration
 def callback_view(request: HttpRequest, logger: Logger = None) -> HttpResponse:
     logger.info("callback request")
 
@@ -127,9 +127,9 @@ def callback_view(request: HttpRequest, logger: Logger = None) -> HttpResponse:
     return ret
 
 
-@populate_logger
-@login_required(login_url=reverse_lazy("django_oac:authenticate"))
 @require_GET
+@login_required(login_url=reverse_lazy("django_oac:authenticate"))
+@populate_logger
 def logout_view(request: HttpRequest, logger: Logger = None) -> HttpResponse:
     logger.info("logout request")
 
