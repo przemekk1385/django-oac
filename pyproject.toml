@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "django-oac"
-version = "0.1.1"
+version = "0.2.0"
 description = ""
 authors = ["Przemek Kaliś <przemek.kalis@gmail.com>"]
 
