@@ -1,3 +1,5 @@
+from django.utils import timezone
+
 from django_oac.conf import settings as oac_settings
 
 USER_PAYLOAD = {
@@ -10,4 +12,12 @@ USER_PAYLOAD = {
 ID_TOKEN_PAYLOAD = {
     **USER_PAYLOAD,
     "aud": oac_settings.CLIENT_ID,
+}
+
+QUERY_DICT = {"code": "foo", "state": "test"}
+
+SESSION_DICT = {
+    "OAC_STATE_STR": "test",
+    "OAC_STATE_TIMESTAMP": timezone.now().timestamp(),
+    "OAC_CLIENT_IP": "127.0.0.1",
 }

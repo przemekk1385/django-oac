@@ -1,9 +1,14 @@
+from copy import copy
 from unittest.mock import Mock
 
 import jwt
 import pytest
+from django.contrib.auth.models import AnonymousUser
 from django.core.cache import cache
+from django.test import RequestFactory
 from jwcrypto.jwk import JWK, JWKSet
+
+from .common import QUERY_DICT, SESSION_DICT
 
 
 class JWKTestHelper:
@@ -74,8 +79,17 @@ def oac_jwt() -> JWTTestHelper:
     return JWTTestHelper()
 
 
+@pytest.fixture
+def oac_valid_get_request() -> RequestFactory:
+    factory = RequestFactory()
+    request = factory.get("foo", QUERY_DICT)
+    request.session = copy(SESSION_DICT)
+    request.user = AnonymousUser()
+    return request
+
+
 @pytest.yield_fixture(autouse=True)
-def clear_django_cache():
+def clear_django_cache() -> None:
     # setup
     yield
     # teardown

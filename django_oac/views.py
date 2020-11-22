@@ -8,7 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from django.http.request import HttpRequest
 from django.shortcuts import redirect, render
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.decorators.http import require_GET
 from ipware import get_client_ip
@@ -19,13 +19,12 @@ from requests.exceptions import RequestException
 from .apps import DjangoOACConfig
 from .conf import settings as oac_settings
 from .decorators import populate_view_logger as populate_logger
-from .exceptions import (
-    ConfigurationError,
-    ExpiredStateError,
-    OACError,
-    ProviderRequestError,
-    ProviderResponseError,
+from .decorators import (
+    validate_query_string,
+    validate_state_expiration,
+    validate_state_matching,
 )
+from .exceptions import ConfigurationError, OACError, ProviderResponseError
 from .logger import get_extra
 
 TEMPLATES_DIR = Path(DjangoOACConfig.name)
@@ -71,39 +70,25 @@ def authenticate_view(request: HttpRequest) -> HttpResponse:
     return ret
 
 
-@require_GET
+@validate_state_expiration
+@validate_state_matching
+@validate_query_string
 @populate_logger
+@require_GET
 def callback_view(request: HttpRequest, logger: Logger = None) -> HttpResponse:
     logger.info("callback request")
 
+    code = request.GET.get("code")
+
     try:
-        user = authenticate(request)
+        user = authenticate(request, code=code)
     except ConfigurationError as err:
         logger.error(str(err))
         ret = render(
             request,
-            TEMPLATES_DIR / "error.html",
-            {"message": "App config is incomplete, cannot continue."},
+            TEMPLATES_DIR / "500.html",
+            {"error_message": "App config is incomplete, cannot continue."},
             status=500,
-        )
-    except ProviderRequestError as err:
-        logger.error(f"raised django_oac.exceptions.ProviderRequestError: {err}")
-        ret = render(
-            request,
-            TEMPLATES_DIR / "error.html",
-            {"message": "Bad request."},
-            status=400,
-        )
-    except ExpiredStateError:
-        logger.info("state expired")
-        ret = render(
-            request,
-            TEMPLATES_DIR / "error.html",
-            {
-                "redirect": reverse("django_oac:authenticate"),
-                "message": "Logging attempt took too long, try again.",
-            },
-            status=400,
         )
     except (
         JSONDecodeError,
