@@ -69,11 +69,11 @@ Additional keys that can be set in OAC dict.
 |key|default value|description|
 |:---|:---|:---|
 |STATE_EXPIRES_IN|300|state expiration time in seconds, set None to disable check|
-|TOKEN_PROVIDER_CLASS|django_oac  .models_providers  .token_provider  .DefaultTokenProvider|class providing and handling token based on OAuth server responses|
-|USER_PROVIDER_CLASS|django_oac  .models_providers  .user_provider  .DefaultUserProvider|class providing user based on ID Token|
+|TOKEN_PROVIDER_CLASS|DefaultTokenProvider|class providing and handling token based on OAuth server responses|
+|USER_PROVIDER_CLASS|DefaultUserProvider|class providing user based on ID Token|
 
 For more details regarding models providers please review the source code of `models_providers` module.
 
-General idea is to give control over processes of creating the token and getting / creating user.
+General idea is to give control over processes of creating token and getting or creating user.
 
-Custom user provider class can let ie. to create user with required priveleges or to make getting / creating user dependent on ID Token payload.
+Custom user provider class can let ie. to create user with required priveleges or to make creating user dependent on ID Token payload.
