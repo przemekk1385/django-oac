@@ -1,1 +1,10 @@
+.idea/
+__pycache__/
+htmlcov/
 log/
+media/
+static/
+
+.coverage
+.env
+.env.*.local
