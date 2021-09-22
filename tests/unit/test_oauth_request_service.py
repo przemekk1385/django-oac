@@ -1,23 +1,24 @@
-from unittest.mock import Mock, PropertyMock, patch
-
 import pytest
+import responses
 
+from django_oac.conf import settings as oac_settings
 from django_oac.exceptions import ProviderResponseError
 from django_oac.services import OAuthRequestService
 
 
-@patch("django_oac.services.requests")
-def test_get_access_token_succeeded(mock_requests):
-    response = Mock()
-    type(response).status_code = PropertyMock(return_value=200)
-    response.json.return_value = {
-        "access_token": "foo",
-        "refresh_token": "bar",
-        "expires_in": 3600,
-        "id_token": "baz",
-    }
-
-    mock_requests.post.return_value = response
+@responses.activate
+def test_get_access_token_succeeded():
+    responses.add(
+        responses.POST,
+        oac_settings.TOKEN_URI,
+        json={
+            "access_token": "foo",
+            "refresh_token": "bar",
+            "expires_in": 3600,
+            "id_token": "baz",
+        },
+        status=200,
+    )
 
     service = OAuthRequestService()
     data = service.get_access_token("spam")
@@ -35,13 +36,11 @@ def test_get_access_token_succeeded(mock_requests):
         (200, "provider response is missing required data"),
     ],
 )
-@patch("django_oac.services.requests")
-def test_get_access_token_failed(mock_requests, status_code, expected_message):
-    response = Mock()
-    type(response).status_code = PropertyMock(return_value=status_code)
-    response.json.return_value = {"foo": "bar"}
-
-    mock_requests.post.return_value = response
+@responses.activate
+def test_get_access_token_failed(status_code, expected_message):
+    responses.add(
+        responses.POST, oac_settings.TOKEN_URI, json={"foo": "bar"}, status=status_code,
+    )
 
     service = OAuthRequestService()
 
@@ -51,18 +50,19 @@ def test_get_access_token_failed(mock_requests, status_code, expected_message):
     assert expected_message in str(e_info.value)
 
 
-@patch("django_oac.services.requests")
-def test_refresh_access_token_succeeded(mock_requests):
-    response = Mock()
-    type(response).status_code = PropertyMock(return_value=200)
-    response.json.return_value = {
-        "access_token": "foo",
-        "refresh_token": "bar",
-        "expires_in": 3600,
-        "id_token": "baz",
-    }
-
-    mock_requests.post.return_value = response
+@responses.activate
+def test_refresh_access_token_succeeded():
+    responses.add(
+        responses.POST,
+        oac_settings.TOKEN_URI,
+        json={
+            "access_token": "foo",
+            "refresh_token": "bar",
+            "expires_in": 3600,
+            "id_token": "baz",
+        },
+        status=200,
+    )
 
     service = OAuthRequestService()
     data = service.refresh_access_token("spam")
@@ -73,13 +73,11 @@ def test_refresh_access_token_succeeded(mock_requests):
     assert data.get("id_token") == "baz"
 
 
-@patch("django_oac.services.requests")
-def test_refresh_access_token_failed(mock_requests):
-    response = Mock()
-    type(response).status_code = PropertyMock(return_value=400)
-    response.json.return_value = {"foo": "bar"}
-
-    mock_requests.post.return_value = response
+@responses.activate
+def test_refresh_access_token_failed():
+    responses.add(
+        responses.POST, oac_settings.TOKEN_URI, json={"foo": "bar"}, status=400,
+    )
 
     service = OAuthRequestService()
 
@@ -87,13 +85,11 @@ def test_refresh_access_token_failed(mock_requests):
         service.refresh_access_token("spam")
 
 
-@patch("django_oac.services.requests")
-def test_revoke_refresh_token_failed(mock_requests):
-    response = Mock()
-    type(response).status_code = PropertyMock(return_value=400)
-    response.json.return_value = {"foo": "bar"}
-
-    mock_requests.post.return_value = response
+@responses.activate
+def test_revoke_refresh_token_failed():
+    responses.add(
+        responses.POST, oac_settings.REVOKE_URI, json={"foo": "bar"}, status=400,
+    )
 
     service = OAuthRequestService()
 
