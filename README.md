@@ -1,12 +1,8 @@
-[![Build Status](https://www.travis-ci.com/przemekk1385/django-oac.svg?branch=master)](https://www.travis-ci.com/przemekk1385/django-oac) [![Coverage Status](https://coveralls.io/repos/github/przemekk1385/django_oac/badge.svg)](https://coveralls.io/github/przemekk1385/django_oac) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) ![supported Python versions](https://img.shields.io/badge/python-3.6%20%7C%203.7%20%7C%203.8-blue) ![supported Django versions](https://img.shields.io/badge/django-2.2%20%7C%203.0%20%7C%203.-blue)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 # Django OAuth Client
 
 Pretty simple OAuth Client for Django.
-
-## Installation
-
-Coming soon...
 
 ## Configuration
 
