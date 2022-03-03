@@ -12,7 +12,6 @@ from django_oac.decorators import (
 )
 
 
-# pylint: disable=invalid-name
 @pytest.mark.parametrize(
     "query_dict,expected_status_code",
     [
@@ -33,9 +32,9 @@ def test_validate_query_string(query_dict, expected_status_code, rf):
     assert response.status_code == expected_status_code
 
 
-# pylint: disable=invalid-name
 @pytest.mark.parametrize(
-    "seconds,expected_status_code", [(301, 400), (299, 200)],
+    "seconds,expected_status_code",
+    [(301, 400), (299, 200)],
 )
 def test_validate_state_expiration(seconds, expected_status_code, rf):
     @validate_state_expiration
@@ -52,7 +51,6 @@ def test_validate_state_expiration(seconds, expected_status_code, rf):
     assert response.status_code == expected_status_code
 
 
-# pylint: disable=invalid-name
 @pytest.mark.parametrize(
     "query_dict,oac_state_str,expected_status_code",
     [({"state": "foo"}, "bar", 400), ({"state": "foo"}, "foo", 200)],

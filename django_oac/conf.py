@@ -51,7 +51,6 @@ def import_from_string(dotted_path, setting_name):
         ) from e_info
 
 
-# pylint: disable=too-few-public-methods
 class OACSettings:
     def __init__(
         self,

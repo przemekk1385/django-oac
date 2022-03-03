@@ -7,8 +7,7 @@ class DjangoOACConfig(AppConfig):
     verbose_name = "Django OAuth Client"
 
     def ready(self):
-        # pylint: disable=import-outside-toplevel, unused-import
-        from .checks import (
+        from .checks import (  # noqa: F401
             settings_oac_attr_check,
             settings_oac_keys_check,
             settings_oac_uris_check,

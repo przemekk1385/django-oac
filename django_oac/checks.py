@@ -4,7 +4,6 @@ from django.conf import settings
 from django.core.checks import Error, register
 
 
-# pylint: disable=unused-argument
 @register
 def settings_oac_attr_check(app_configs, **kwargs):
     errors = []
@@ -26,7 +25,6 @@ def settings_oac_attr_check(app_configs, **kwargs):
     return errors
 
 
-# pylint: disable=unused-argument
 @register
 def settings_oac_keys_check(app_configs, **kwargs):
     errors = []
@@ -47,7 +45,6 @@ def settings_oac_keys_check(app_configs, **kwargs):
     return errors
 
 
-# pylint: disable=unused-argument
 @register
 def settings_oac_uris_check(app_configs, **kwargs):
     errors = []
@@ -62,7 +59,8 @@ def settings_oac_uris_check(app_configs, **kwargs):
             if not parse_result.scheme or not parse_result.netloc:
                 errors.append(
                     Error(
-                        f"key '{key}' seems to store invalid URI", id="django_oac.E004",
+                        f"key '{key}' seems to store invalid URI",
+                        id="django_oac.E004",
                     )
                 )
     return errors

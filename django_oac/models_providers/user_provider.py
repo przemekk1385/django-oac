@@ -17,7 +17,6 @@ logger = getLogger(__package__)
 UserModel = get_user_model()
 
 
-# pylint: disable=too-few-public-methods
 class UserProviderBase(ABC):
     @abstractmethod
     def get_or_create(

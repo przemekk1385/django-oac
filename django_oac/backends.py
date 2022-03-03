@@ -31,8 +31,6 @@ class OAuthClientBackend:
         code: str = None,
         token_provider: TokenProviderBase = TokenProvider(),
     ) -> Union[UserModel, None]:
-        # pylint: disable=unused-argument
-
         logger = LoggerAdapter(
             getLogger(__package__),
             get_extra(
