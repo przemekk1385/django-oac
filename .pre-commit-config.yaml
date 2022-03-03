@@ -1,0 +1,26 @@
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v2.3.0
+  hooks:
+  - id: check-merge-conflict
+    name: check-merge-conflict
+  - id: detect-private-key
+    name: detect-private-key
+  - id: end-of-file-fixer
+    name: end-of-file-fixer
+  - id: no-commit-to-branch
+    name: no-commit-to-branch
+  - id: trailing-whitespace
+    name: trailing-whitespace
+- repo: https://github.com/psf/black
+  rev: 21.9b0
+  hooks:
+  - id: black
+- repo: https://github.com/PyCQA/flake8
+  rev: 4.0.1
+  hooks:
+  -   id: flake8
+- repo: https://github.com/PyCQA/isort
+  rev: 5.9.3
+  hooks:
+  - id: isort

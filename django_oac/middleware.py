@@ -13,7 +13,6 @@ from .models_providers.token_provider import TokenProviderBase
 TokenProvider = oac_settings.TOKEN_PROVIDER_CLASS
 
 
-# pylint: disable=too-few-public-methods
 class OAuthClientMiddleware:
     def __init__(
         self,
