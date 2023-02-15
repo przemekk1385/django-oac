@@ -6,7 +6,7 @@ authors = ["Przemek Kaliś <przemek.kalis@gmail.com>"]
 
 [tool.poetry.dependencies]
 cryptography = "^3.2"
-django = "^3.1"
+django = "^3.2"
 django-ipware = "^3.0.1"
 jwcrypto = "^0.7"
 pendulum = "^2.1.2"
